@@ -1875,7 +1875,9 @@ class BasePlatformAdapter(ABC):
             self._expected_cancelled_tasks.add(task)
             task.cancel()
         if tasks:
-            await asyncio.gather(*tasks, return_exceptions=True)
+            async with asyncio.TaskGroup() as tg:
+                for task in tasks:
+                    tg.create_task(task)
         self._background_tasks.clear()
         self._expected_cancelled_tasks.clear()
         self._pending_messages.clear()

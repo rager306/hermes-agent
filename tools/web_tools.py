@@ -1166,7 +1166,7 @@ def web_search_tool(query: str, limit: int = 5) -> str:
 
         return tool_error(error_msg)
 
-
+@cache_tool_result(ttl_seconds=300)
 async def web_extract_tool(
     urls: list[str],
     format: str | None = None,

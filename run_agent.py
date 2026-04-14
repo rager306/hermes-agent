@@ -7177,6 +7177,10 @@ class AIAgent:
 
     def _execute_tool_calls_sequential(self, assistant_message, messages: list, effective_task_id: str, api_call_count: int = 0) -> None:
         """Execute tool calls sequentially (original behavior). Used for single calls or interactive tools."""
+        # Parallel bypass: when delay is disabled and the batch is safe, run concurrently
+        if HERMES_TOOL_DELAY == 0.0 and _should_parallelize_tool_batch(assistant_message.tool_calls):
+            return self._execute_tool_calls_concurrent(assistant_message, messages, effective_task_id, api_call_count)
+
         for i, tool_call in enumerate(assistant_message.tool_calls, 1):
             # SAFETY: check interrupt BEFORE starting each tool.
             # If the user sent "stop" during a previous tool's execution,

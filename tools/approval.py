@@ -15,7 +15,6 @@ import re
 import sys
 import threading
 import unicodedata
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -213,12 +212,12 @@ _permanent_approved: set = set()
 
 class _ApprovalEntry:
     """One pending dangerous-command approval inside a gateway session."""
-    __slots__ = ("event", "data", "result")
+    __slots__ = ("data", "event", "result")
 
     def __init__(self, data: dict):
         self.event = threading.Event()
         self.data = data          # command, description, pattern_keys, …
-        self.result: Optional[str] = None  # "once"|"session"|"always"|"deny"
+        self.result: str | None = None  # "once"|"session"|"always"|"deny"
 
 
 _gateway_queues: dict[str, list] = {}        # session_key → [_ApprovalEntry, …]
@@ -444,14 +443,14 @@ def prompt_dangerous_approval(command: str, description: str,
             print()
             sys.stdout.flush()
 
-            result = {"choice": ""}
+            result_ = {"choice": ""}
 
             def get_input():
                 try:
                     prompt = "      Choice [o/s/a/D]: " if allow_permanent else "      Choice [o/s/D]: "
-                    result["choice"] = input(prompt).strip().lower()
+                    result_["choice"] = input(prompt).strip().lower()
                 except (EOFError, OSError):
-                    result["choice"] = ""
+                    result_["choice"] = ""
 
             thread = threading.Thread(target=get_input, daemon=True)
             thread.start()
@@ -461,7 +460,7 @@ def prompt_dangerous_approval(command: str, description: str,
                 print("\n      ⏱ Timeout - denying command")
                 return "deny"
 
-            choice = result["choice"]
+            choice = result_["choice"]
             if choice in ('o', 'once'):
                 print("      ✓ Allowed once")
                 return "once"
@@ -538,7 +537,7 @@ def _smart_approve(command: str, description: str) -> str:
     (openai/codex#13860).
     """
     try:
-        from agent.auxiliary_client import get_text_auxiliary_client, auxiliary_max_tokens_param
+        from agent.auxiliary_client import auxiliary_max_tokens_param, get_text_auxiliary_client
 
         client, model = get_text_auxiliary_client(task="approval")
         if not client or not model:

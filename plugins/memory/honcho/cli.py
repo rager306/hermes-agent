@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 
 from hermes_constants import get_hermes_home
-from plugins.memory.honcho.client import resolve_active_host, resolve_config_path, HOST
+from plugins.memory.honcho.client import HOST, resolve_active_host, resolve_config_path
 
 
 def clone_honcho_for_profile(profile_name: str) -> bool:
@@ -369,7 +369,7 @@ def cmd_setup(args) -> None:
         # the client should skip auth when baseUrl is local.
         current_key = cfg.get("apiKey", "")
         if current_key:
-            print(f"\n  API key present in config (kept for cloud/hybrid use).")
+            print("\n  API key present in config (kept for cloud/hybrid use).")
             print("  Local connections will skip auth automatically.")
         else:
             print("\n  No API key set. Local no-auth ready.")
@@ -636,7 +636,7 @@ def _show_peer_cards(hcfg, client) -> None:
         if ai_text:
             # Truncate to first 200 chars
             display = ai_text[:200] + ("..." if len(ai_text) > 200 else "")
-            print(f"\n  AI peer representation:")
+            print("\n  AI peer representation:")
             print(f"    {display}")
 
         if not card and not ai_text:
@@ -670,7 +670,7 @@ def _cmd_status_all() -> None:
         marker = " *" if name == active else ""
         print(f"  {name + marker:<14} {host:<22} {enabled_str:<9} {recall:<9} {write}")
 
-    print(f"\n  * active profile\n")
+    print("\n  * active profile\n")
 
 
 def cmd_peers(args) -> None:
@@ -810,7 +810,7 @@ def cmd_mode(args) -> None:
         for m, desc in MODES.items():
             marker = " <-" if m == current else ""
             print(f"  {m:<10}  {desc}{marker}")
-        print(f"\n  Set with: hermes honcho mode [hybrid|context|tools]\n")
+        print("\n  Set with: hermes honcho mode [hybrid|context|tools]\n")
         return
 
     if mode_arg not in MODES:
@@ -1058,7 +1058,7 @@ def cmd_migrate(args) -> None:
                     session_key = hcfg.resolve_session_name()
                     mgr.get_or_create(session_key)
                     # Upload from each directory that had user files
-                    dirs_with_files = set(str(f.parent) for f in user_files)
+                    dirs_with_files = {str(f.parent) for f in user_files}
                     any_uploaded = False
                     for d in dirs_with_files:
                         if mgr.migrate_memory_files(session_key, d):

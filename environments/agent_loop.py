@@ -18,11 +18,12 @@ import logging
 import os
 import uuid
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Optional
 
 from model_tools import handle_function_call
+from tools.budget_config import BudgetConfig
 from tools.terminal_tool import get_active_env
-from tools.tool_result_storage import maybe_persist_tool_result, enforce_turn_budget
+from tools.tool_result_storage import enforce_turn_budget, maybe_persist_tool_result
 
 # Thread pool for running sync tool calls that internally use asyncio.run()
 # (e.g., the Modal/Docker/Daytona terminal backends). Running them in a separate
@@ -65,20 +66,20 @@ class AgentResult:
     """Result of running the agent loop."""
 
     # Full conversation history in OpenAI message format
-    messages: List[Dict[str, Any]]
+    messages: list[dict[str, Any]]
     # ManagedServer.get_state() if available (Phase 2), None otherwise
-    managed_state: Optional[Dict[str, Any]] = None
+    managed_state: dict[str, Any] | None = None
     # How many LLM calls were made
     turns_used: int = 0
     # True if model stopped calling tools naturally (vs hitting max_turns)
     finished_naturally: bool = False
     # Extracted reasoning content per turn (from PR #297 helpers)
-    reasoning_per_turn: List[Optional[str]] = field(default_factory=list)
+    reasoning_per_turn: list[str | None] = field(default_factory=list)
     # Tool errors encountered during the loop
-    tool_errors: List[ToolError] = field(default_factory=list)
+    tool_errors: list[ToolError] = field(default_factory=list)
 
 
-def _extract_reasoning_from_message(message) -> Optional[str]:
+def _extract_reasoning_from_message(message) -> str | None:
     """
     Extract reasoning content from a ChatCompletion message.
 
@@ -133,13 +134,13 @@ class HermesAgentLoop:
     def __init__(
         self,
         server,
-        tool_schemas: List[Dict[str, Any]],
-        valid_tool_names: Set[str],
+        tool_schemas: list[dict[str, Any]],
+        valid_tool_names: set[str],
         max_turns: int = 30,
-        task_id: Optional[str] = None,
+        task_id: str | None = None,
         temperature: float = 1.0,
-        max_tokens: Optional[int] = None,
-        extra_body: Optional[Dict[str, Any]] = None,
+        max_tokens: int | None = None,
+        extra_body: dict[str, Any] | None = None,
         budget_config: Optional["BudgetConfig"] = None,
     ):
         """
@@ -172,7 +173,7 @@ class HermesAgentLoop:
         self.extra_body = extra_body
         self.budget_config = budget_config or DEFAULT_BUDGET
 
-    async def run(self, messages: List[Dict[str, Any]]) -> AgentResult:
+    async def run(self, messages: list[dict[str, Any]]) -> AgentResult:
         """
         Execute the full agent loop using standard OpenAI tool calling.
 
@@ -184,10 +185,11 @@ class HermesAgentLoop:
             AgentResult with full conversation history, managed state, and metadata
         """
         reasoning_per_turn = []
-        tool_errors: List[ToolError] = []
+        tool_errors: list[ToolError] = []
 
         # Per-loop TodoStore for the todo tool (ephemeral, dies with the loop)
-        from tools.todo_tool import TodoStore, todo_tool as _todo_tool
+        from tools.todo_tool import TodoStore
+        from tools.todo_tool import todo_tool as _todo_tool
         _todo_store = TodoStore()
 
         # Extract user task from first user message for browser_snapshot context
@@ -311,7 +313,7 @@ class HermesAgentLoop:
                     }
 
                 # Build the assistant message dict for conversation history
-                msg_dict: Dict[str, Any] = {
+                msg_dict: dict[str, Any] = {
                     "role": "assistant",
                     "content": assistant_msg.content or "",
                     "tool_calls": [_tc_to_dict(tc) for tc in assistant_msg.tool_calls],
@@ -377,7 +379,7 @@ class HermesAgentLoop:
                         if args is not None:
                             try:
                                 if tool_name == "terminal":
-                                    backend = os.getenv("TERMINAL_ENV", "local")
+                                    os.getenv("TERMINAL_ENV", "local")
                                     cmd_preview = args.get("command", "")[:80]
                                     logger.info(
                                         "[%s] $ %s", self.task_id[:8], cmd_preview,
@@ -408,7 +410,7 @@ class HermesAgentLoop:
                                     _tn, _ta, _tid = tool_name, args, self.task_id
                                     tool_result = await loop.run_in_executor(
                                         _tool_executor,
-                                        lambda: handle_function_call(
+                                        lambda _tn=_tn, _ta=_ta, _tid=_tid: handle_function_call(
                                             _tn, _ta, task_id=_tid,
                                             user_task=_user_task,
                                         ),
@@ -425,12 +427,12 @@ class HermesAgentLoop:
                                     )
                             except Exception as e:
                                 tool_result = json.dumps(
-                                    {"error": f"Tool execution failed: {type(e).__name__}: {str(e)}"}
+                                    {"error": f"Tool execution failed: {type(e).__name__}: {e!s}"}
                                 )
                                 tool_errors.append(ToolError(
                                     turn=turn + 1, tool_name=tool_name,
                                     arguments=tool_args_raw[:200],
-                                    error=f"{type(e).__name__}: {str(e)}",
+                                    error=f"{type(e).__name__}: {e!s}",
                                     tool_result=tool_result,
                                 ))
                                 logger.error(
@@ -522,7 +524,7 @@ class HermesAgentLoop:
             tool_errors=tool_errors,
         )
 
-    def _get_managed_state(self) -> Optional[Dict[str, Any]]:
+    def _get_managed_state(self) -> dict[str, Any] | None:
         """
         Get ManagedServer state if the server supports it.
 

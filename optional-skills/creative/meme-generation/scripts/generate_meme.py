@@ -18,7 +18,6 @@ unknown templates get smart default text positioning based on their box_count.
 import json
 import os
 import sys
-import textwrap
 from io import BytesIO
 from pathlib import Path
 
@@ -136,7 +135,7 @@ def resolve_template(identifier: str) -> dict:
     for meme in imgflip_memes:
         meme_slug = _slugify(meme["name"])
         # Check curated first for this imgflip template (custom positioning)
-        for tid, ctmpl in curated.items():
+        for _tid, ctmpl in curated.items():
             if _slugify(ctmpl["name"]) == meme_slug:
                 if meme_slug == slug_lower or meme["id"] == id_lower:
                     return {**ctmpl, "source": "curated"}
@@ -186,12 +185,12 @@ def find_font(size: int) -> ImageFont.FreeTypeFont:
         if os.path.exists(path):
             try:
                 return ImageFont.truetype(path, size)
-            except (OSError, IOError):
+            except OSError:
                 continue
     # Last resort: Pillow default
     try:
         return ImageFont.truetype("DejaVuSans-Bold", size)
-    except (OSError, IOError):
+    except OSError:
         return ImageFont.load_default()
 
 

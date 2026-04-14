@@ -12,7 +12,6 @@ import shutil
 import subprocess
 import sys
 import uuid
-from typing import Optional
 
 from tools.environments.base import BaseEnvironment, _popen_bash
 from tools.environments.local import _HERMES_PROVIDER_ENV_BLOCKLIST
@@ -29,7 +28,7 @@ _DOCKER_SEARCH_PATHS = [
     "/Applications/Docker.app/Contents/Resources/bin/docker",
 ]
 
-_docker_executable: Optional[str] = None  # resolved once, cached
+_docker_executable: str | None = None  # resolved once, cached
 _ENV_VAR_NAME_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 
 
@@ -98,7 +97,7 @@ def _load_hermes_env_vars() -> dict[str, str]:
         return {}
 
 
-def find_docker() -> Optional[str]:
+def find_docker() -> str | None:
     """Locate the docker CLI binary.
 
     Checks ``shutil.which`` first (respects PATH), then probes well-known
@@ -145,7 +144,7 @@ _SECURITY_ARGS = [
 ]
 
 
-_storage_opt_ok: Optional[bool] = None  # cached result across instances
+_storage_opt_ok: bool | None = None  # cached result across instances
 
 
 def _ensure_docker_available() -> None:
@@ -182,7 +181,7 @@ def _ensure_docker_available() -> None:
         )
         raise RuntimeError(
             "Docker executable could not be executed. Check your Docker installation."
-        )
+        ) from None
     except subprocess.TimeoutExpired:
         logger.error(
             "Docker backend selected but '%s version' timed out. "
@@ -192,7 +191,7 @@ def _ensure_docker_available() -> None:
         )
         raise RuntimeError(
             "Docker daemon is not responding. Ensure Docker is running and try again."
-        )
+        ) from None
     except Exception:
         logger.error(
             "Unexpected error while checking Docker availability.",
@@ -236,11 +235,11 @@ class DockerEnvironment(BaseEnvironment):
         disk: int = 0,
         persistent_filesystem: bool = False,
         task_id: str = "default",
-        volumes: list = None,
+        volumes: list | None = None,
         forward_env: list[str] | None = None,
         env: dict | None = None,
         network: bool = True,
-        host_cwd: str = None,
+        host_cwd: str | None = None,
         auto_mount_cwd: bool = False,
     ):
         if cwd == "~":
@@ -250,7 +249,7 @@ class DockerEnvironment(BaseEnvironment):
         self._task_id = task_id
         self._forward_env = _normalize_forward_env_names(forward_env)
         self._env = _normalize_env_dict(env)
-        self._container_id: Optional[str] = None
+        self._container_id: str | None = None
         logger.info(f"DockerEnvironment volumes: {volumes}")
         # Ensure volumes is a list (config.yaml could be malformed)
         if volumes is not None and not isinstance(volumes, list):
@@ -309,8 +308,8 @@ class DockerEnvironment(BaseEnvironment):
         if auto_mount_cwd and host_cwd and not os.path.isdir(host_cwd_abs):
             logger.debug(f"Skipping docker cwd mount: host_cwd is not a valid directory: {host_cwd}")
 
-        self._workspace_dir: Optional[str] = None
-        self._home_dir: Optional[str] = None
+        self._workspace_dir: str | None = None
+        self._home_dir: str | None = None
         writable_args = []
         if self._persistent:
             sandbox = get_sandbox_dir() / "docker" / task_id
@@ -345,9 +344,9 @@ class DockerEnvironment(BaseEnvironment):
         # Read-only so the container can authenticate but not modify host creds.
         try:
             from tools.credential_files import (
+                get_cache_directory_mounts,
                 get_credential_file_mounts,
                 get_skills_directory_mount,
-                get_cache_directory_mounts,
             )
 
             for mount_entry in get_credential_file_mounts():
@@ -493,7 +492,7 @@ class DockerEnvironment(BaseEnvironment):
     @staticmethod
     def _storage_opt_supported() -> bool:
         """Check if Docker's storage driver supports --storage-opt size=.
-        
+
         Only overlay2 on XFS with pquota supports per-container disk quotas.
         Ubuntu (and most distros) default to ext4, where this flag errors out.
         """

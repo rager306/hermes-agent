@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-from getpass import getpass
 import math
 import time
-from types import SimpleNamespace
 import uuid
+from getpass import getpass
+from types import SimpleNamespace
 
+import hermes_cli.auth as auth_mod
 from agent.credential_pool import (
     AUTH_TYPE_API_KEY,
     AUTH_TYPE_OAUTH,
@@ -15,9 +16,9 @@ from agent.credential_pool import (
     SOURCE_MANUAL,
     STATUS_EXHAUSTED,
     STRATEGY_FILL_FIRST,
-    STRATEGY_ROUND_ROBIN,
-    STRATEGY_RANDOM,
     STRATEGY_LEAST_USED,
+    STRATEGY_RANDOM,
+    STRATEGY_ROUND_ROBIN,
     PooledCredential,
     _exhausted_until,
     _normalize_custom_pool_name,
@@ -26,10 +27,8 @@ from agent.credential_pool import (
     list_custom_pool_providers,
     load_pool,
 )
-import hermes_cli.auth as auth_mod
 from hermes_cli.auth import PROVIDER_REGISTRY
 from hermes_constants import OPENROUTER_BASE_URL
-
 
 # Providers that support OAuth login in addition to API keys.
 _OAUTH_CAPABLE_PROVIDERS = {"anthropic", "nous", "openai-codex", "qwen-oauth"}
@@ -118,7 +117,7 @@ def _format_exhausted_status(entry) -> str:
     exhausted_until = _exhausted_until(entry)
     if exhausted_until is None:
         return f" exhausted{reason_text}{code}"
-    remaining = max(0, int(math.ceil(exhausted_until - time.time())))
+    remaining = max(0, math.ceil(exhausted_until - time.time()))
     if remaining <= 0:
         return f" exhausted{reason_text}{code} (ready to retry)"
     minutes, seconds = divmod(remaining, 60)
@@ -329,7 +328,9 @@ def auth_remove_command(args) -> None:
     # re-seeded on the next load_pool() call.
     elif removed.source == "device_code" and provider in ("openai-codex", "nous"):
         from hermes_cli.auth import (
-            _load_auth_store, _save_auth_store, _auth_store_lock,
+            _auth_store_lock,
+            _load_auth_store,
+            _save_auth_store,
         )
         with _auth_store_lock():
             auth_store = _load_auth_store()
@@ -402,7 +403,7 @@ def _interactive_auth() -> None:
 
 def _pick_provider(prompt: str = "Provider") -> str:
     """Prompt for a provider name with auto-complete hints."""
-    known = sorted(set(list(PROVIDER_REGISTRY.keys()) + ["openrouter"]))
+    known = sorted({*list(PROVIDER_REGISTRY.keys()), "openrouter"})
     custom_names = _get_custom_provider_names()
     if custom_names:
         custom_display = [name for name, _key, _provider_key in custom_names]
@@ -413,7 +414,7 @@ def _pick_provider(prompt: str = "Provider") -> str:
     try:
         raw = input(f"{prompt}: ").strip()
     except (EOFError, KeyboardInterrupt):
-        raise SystemExit()
+        raise SystemExit() from None
     return _normalize_provider(raw)
 
 

@@ -51,16 +51,15 @@ import time
 import uuid
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 _repo_root = Path(__file__).resolve().parent.parent.parent.parent
 if str(_repo_root) not in sys.path:
     sys.path.insert(0, str(_repo_root))
 
-from pydantic import Field
-
 from atroposlib.envs.base import EvalHandlingEnum
 from atroposlib.envs.server_handling.server_manager import APIServerConfig
+from pydantic import Field
 
 from environments.agent_loop import HermesAgentLoop
 from environments.hermes_base_env import HermesAgentBaseEnv, HermesAgentEnvConfig
@@ -184,11 +183,11 @@ class YCBenchEvalConfig(HermesAgentEnvConfig):
     preset selection, seed control, scoring, and simulation parameters.
     """
 
-    presets: List[str] = Field(
+    presets: list[str] = Field(
         default=["fast_test", "medium", "hard"],
         description="YC-Bench preset names to evaluate.",
     )
-    seeds: List[int] = Field(
+    seeds: list[int] = Field(
         default=[1, 2, 3],
         description="Random seeds -- each preset x seed = one run.",
     )
@@ -208,7 +207,7 @@ class YCBenchEvalConfig(HermesAgentEnvConfig):
         default="/tmp/yc_bench_dbs",
         description="Directory for per-run SQLite databases.",
     )
-    horizon_years: Optional[int] = Field(
+    horizon_years: int | None = Field(
         default=None,
         description=(
             "Simulation horizon in years. If None (default), inferred from "
@@ -229,7 +228,7 @@ class YCBenchEvalConfig(HermesAgentEnvConfig):
 # Scoring helpers
 # =============================================================================
 
-def _read_final_score(db_path: str) -> Dict[str, Any]:
+def _read_final_score(db_path: str) -> dict[str, Any]:
     """
     Read final game state from a YC-Bench SQLite database.
 
@@ -345,7 +344,7 @@ class YCBenchEvalEnv(HermesAgentBaseEnv):
     env_config_cls = YCBenchEvalConfig
 
     @classmethod
-    def config_init(cls) -> Tuple[YCBenchEvalConfig, List[APIServerConfig]]:
+    def config_init(cls) -> tuple[YCBenchEvalConfig, list[APIServerConfig]]:
         env_config = YCBenchEvalConfig(
             enabled_toolsets=["terminal"],
             disabled_toolsets=None,
@@ -403,7 +402,7 @@ class YCBenchEvalEnv(HermesAgentBaseEnv):
                 '  pip install "hermes-agent[yc-bench]"\n'
                 "Or: git clone https://github.com/collinear-ai/yc-bench "
                 "&& cd yc-bench && pip install -e ."
-            )
+            ) from None
         print("yc-bench CLI verified.")
 
         # Build eval matrix: preset x seed
@@ -415,7 +414,7 @@ class YCBenchEvalEnv(HermesAgentBaseEnv):
         self.iter = 0
 
         os.makedirs(self.config.db_dir, exist_ok=True)
-        self.eval_metrics: List[Tuple[str, float]] = []
+        self.eval_metrics: list[tuple[str, float]] = []
 
         # Streaming JSONL log for crash-safe result persistence
         log_dir = os.path.join(os.path.dirname(__file__), "logs")
@@ -430,7 +429,7 @@ class YCBenchEvalEnv(HermesAgentBaseEnv):
             print(f"  preset={item['preset']!r}  seed={item['seed']}")
         print(f"Streaming results to: {self._streaming_path}\n")
 
-    def _save_result(self, result: Dict[str, Any]):
+    def _save_result(self, result: dict[str, Any]):
         """Write a single run result to the streaming JSONL file immediately."""
         if not hasattr(self, "_streaming_file") or self._streaming_file.closed:
             return
@@ -449,7 +448,7 @@ class YCBenchEvalEnv(HermesAgentBaseEnv):
         self.iter += 1
         return item
 
-    def format_prompt(self, item: Dict[str, Any]) -> str:
+    def format_prompt(self, item: dict[str, Any]) -> str:
         preset = item["preset"]
         seed = item["seed"]
         return (
@@ -479,7 +478,7 @@ class YCBenchEvalEnv(HermesAgentBaseEnv):
     # Per-run evaluation
     # =========================================================================
 
-    async def rollout_and_score_eval(self, eval_item: Dict[str, Any]) -> Dict:
+    async def rollout_and_score_eval(self, eval_item: dict[str, Any]) -> dict:
         """
         Evaluate a single (preset, seed) run.
 
@@ -535,7 +534,7 @@ class YCBenchEvalEnv(HermesAgentBaseEnv):
             # ----------------------------------------------------------
             tools, valid_names = self._resolve_tools_for_group()
 
-            messages: List[Dict[str, Any]] = [
+            messages: list[dict[str, Any]] = [
                 {"role": "system", "content": YC_BENCH_SYSTEM_PROMPT},
                 {"role": "user", "content": self.format_prompt(eval_item)},
             ]
@@ -623,7 +622,7 @@ class YCBenchEvalEnv(HermesAgentBaseEnv):
     # Evaluate
     # =========================================================================
 
-    async def _run_with_timeout(self, item: Dict[str, Any]) -> Dict:
+    async def _run_with_timeout(self, item: dict[str, Any]) -> dict:
         """Wrap a single rollout with a wall-clock timeout."""
         preset = item["preset"]
         seed = item["seed"]
@@ -632,7 +631,7 @@ class YCBenchEvalEnv(HermesAgentBaseEnv):
                 self.rollout_and_score_eval(item),
                 timeout=self.config.run_timeout,
             )
-        except asyncio.TimeoutError:
+        except TimeoutError:
             from tqdm import tqdm
             tqdm.write(
                 f"  [TIMEOUT] preset={preset!r} seed={seed} "
@@ -735,7 +734,7 @@ class YCBenchEvalEnv(HermesAgentBaseEnv):
             else 0.0
         )
 
-        preset_results: Dict[str, List[Dict]] = defaultdict(list)
+        preset_results: dict[str, list[dict]] = defaultdict(list)
         for r in valid:
             preset_results[r["preset"]].append(r)
 
@@ -759,7 +758,7 @@ class YCBenchEvalEnv(HermesAgentBaseEnv):
             eval_metrics[f"eval/survival_rate_{key}"] = ps / pt if pt else 0
             eval_metrics[f"eval/avg_score_{key}"] = pa
 
-        self.eval_metrics = [(k, v) for k, v in eval_metrics.items()]
+        self.eval_metrics = list(eval_metrics.items())
 
         # --- Print summary ---
         print(f"\n{'='*60}")
@@ -834,7 +833,7 @@ class YCBenchEvalEnv(HermesAgentBaseEnv):
     # Wandb logging
     # =========================================================================
 
-    async def wandb_log(self, wandb_metrics: Optional[Dict] = None):
+    async def wandb_log(self, wandb_metrics: dict | None = None):
         """Log YC-Bench-specific metrics to wandb."""
         if wandb_metrics is None:
             wandb_metrics = {}

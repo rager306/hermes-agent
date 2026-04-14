@@ -1,5 +1,6 @@
 """Tests for slash command prefix matching in HermesCLI.process_command."""
 from unittest.mock import MagicMock, patch
+
 from cli import HermesCLI
 
 
@@ -41,7 +42,7 @@ class TestSlashCommandPrefixMatching:
             try:
                 cli_obj.process_command("/con set key value")
             except RecursionError:
-                assert False, "process_command recursed infinitely"
+                raise AssertionError("process_command recursed infinitely") from None
 
         # Should have been called at most twice: once for /con set..., once for /config set...
         assert len(dispatched) <= 2
@@ -65,7 +66,7 @@ class TestSlashCommandPrefixMatching:
             try:
                 cli_obj.process_command("/config set key value")
             except RecursionError:
-                assert False, "Recursed infinitely on /config set key value"
+                raise AssertionError("Recursed infinitely on /config set key value") from None
 
         assert call_count[0] <= 3
 

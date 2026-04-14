@@ -12,7 +12,6 @@ import subprocess
 import threading
 import uuid
 from pathlib import Path
-from typing import Optional
 
 from hermes_constants import get_hermes_home
 from tools.environments.base import (
@@ -50,9 +49,9 @@ def _ensure_singularity_available() -> str:
     except FileNotFoundError:
         raise RuntimeError(
             f"Singularity backend selected but '{exe}' could not be executed."
-        )
+        ) from None
     except subprocess.TimeoutExpired:
-        raise RuntimeError(f"'{exe} version' timed out.")
+        raise RuntimeError(f"'{exe} version' timed out.") from None
 
     if result.returncode != 0:
         stderr = result.stderr.strip()[:200]
@@ -179,7 +178,7 @@ class SingularityEnvironment(BaseEnvironment):
         self._instance_started = False
         self._persistent = persistent_filesystem
         self._task_id = task_id
-        self._overlay_dir: Optional[Path] = None
+        self._overlay_dir: Path | None = None
         self._cpu = cpu
         self._memory = memory
 
@@ -225,7 +224,7 @@ class SingularityEnvironment(BaseEnvironment):
             logger.info("Singularity instance %s started (persistent=%s)",
                         self.instance_id, self._persistent)
         except subprocess.TimeoutExpired:
-            raise RuntimeError("Instance start timed out")
+            raise RuntimeError("Instance start timed out") from None
 
     def _run_bash(self, cmd_string: str, *, login: bool = False,
                   timeout: int = 120,

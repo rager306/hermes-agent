@@ -14,13 +14,13 @@ Resolution order for host-specific settings:
 from __future__ import annotations
 
 import json
-import os
 import logging
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
 from hermes_constants import get_hermes_home
-from typing import Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from honcho import Honcho
@@ -507,7 +507,7 @@ def get_honcho_client(config: HonchoClientConfig | None = None) -> Honcho:
         raise ImportError(
             "honcho-ai is required for Honcho integration. "
             "Install it with: pip install honcho-ai"
-        )
+        ) from None
 
     # Allow config.yaml honcho.base_url to override the SDK's environment
     # mapping, enabling remote self-hosted Honcho deployments without

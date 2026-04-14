@@ -103,6 +103,7 @@ class MemoryProvider(ABC):
         """
         return ""
 
+    @abstractmethod
     def queue_prefetch(self, query: str, *, session_id: str = "") -> None:
         """Queue a background recall for the NEXT turn.
 
@@ -111,6 +112,7 @@ class MemoryProvider(ABC):
         that do background prefetching should override this.
         """
 
+    @abstractmethod
     def sync_turn(self, user_content: str, assistant_content: str, *, session_id: str = "") -> None:
         """Persist a completed turn to the backend.
 
@@ -136,11 +138,13 @@ class MemoryProvider(ABC):
         """
         raise NotImplementedError(f"Provider {self.name} does not handle tool {tool_name}")
 
+    @abstractmethod
     def shutdown(self) -> None:
         """Clean shutdown — flush queues, close connections."""
 
     # -- Optional hooks (override to opt in) ---------------------------------
 
+    @abstractmethod
     def on_turn_start(self, turn_number: int, message: str, **kwargs) -> None:
         """Called at the start of each turn with the user message.
 
@@ -150,6 +154,7 @@ class MemoryProvider(ABC):
         Providers use what they need; extras are ignored.
         """
 
+    @abstractmethod
     def on_session_end(self, messages: list[dict[str, Any]]) -> None:
         """Called when a session ends (explicit exit or timeout).
 
@@ -172,6 +177,7 @@ class MemoryProvider(ABC):
         """
         return ""
 
+    @abstractmethod
     def on_delegation(self, task: str, result: str, *,
                       child_session_id: str = "", **kwargs) -> None:
         """Called on the PARENT agent when a subagent completes.
@@ -203,6 +209,7 @@ class MemoryProvider(ABC):
         """
         return []
 
+    @abstractmethod
     def save_config(self, values: dict[str, Any], hermes_home: str) -> None:
         """Write non-secret config to the provider's native location.
 
@@ -220,6 +227,7 @@ class MemoryProvider(ABC):
           should all have ``env_var`` set and this method stays no-op).
         """
 
+    @abstractmethod
     def on_memory_write(self, action: str, target: str, content: str) -> None:
         """Called when the built-in memory tool writes an entry.
 

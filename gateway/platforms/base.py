@@ -990,6 +990,7 @@ class BasePlatformAdapter(ABC):
         """
         return SendResult(success=False, error="Not supported")
 
+    @abstractmethod
     async def send_typing(self, chat_id: str, metadata=None) -> None:
         """
         Send a typing indicator.
@@ -999,6 +1000,7 @@ class BasePlatformAdapter(ABC):
         """
         pass
 
+    @abstractmethod
     async def stop_typing(self, chat_id: str) -> None:
         """Stop a persistent typing indicator (if the platform uses one).
 
@@ -1347,9 +1349,11 @@ class BasePlatformAdapter(ABC):
     # Subclasses override these to react to message processing events
     # (e.g. Discord adds 👀/✅/❌ reactions).
 
+    @abstractmethod
     async def on_processing_start(self, event: MessageEvent) -> None:
         """Hook called when background processing begins."""
 
+    @abstractmethod
     async def on_processing_complete(self, event: MessageEvent, outcome: ProcessingOutcome) -> None:
         """Hook called when background processing completes."""
 

@@ -100,6 +100,7 @@ class ContextEngine(ABC):
 
     # -- Optional: session lifecycle ---------------------------------------
 
+    @abstractmethod
     def on_session_start(self, session_id: str, **kwargs) -> None:
         """Called when a new conversation session begins.
 
@@ -107,6 +108,7 @@ class ContextEngine(ABC):
         kwargs may include hermes_home, platform, model, etc.
         """
 
+    @abstractmethod
     def on_session_end(self, session_id: str, messages: list[dict[str, Any]]) -> None:
         """Called at real session boundaries (CLI exit, /reset, gateway expiry).
 

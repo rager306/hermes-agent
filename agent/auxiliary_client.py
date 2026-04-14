@@ -868,9 +868,9 @@ def _resolve_custom_runtime() -> tuple[str | None, str | None, str | None]:
             "api_key": openai_key,
         }
 
-    custom_base = runtime.get("base_url")
-    custom_key = runtime.get("api_key")
-    custom_mode = runtime.get("api_mode")
+    custom_base = runtime.get("base_url") or ""
+    custom_key = runtime.get("api_key") or ""
+    custom_mode = runtime.get("api_mode") or ""
     if not isinstance(custom_base, str) or not custom_base.strip():
         return None, None, None
 

@@ -1703,8 +1703,8 @@ class HermesCLI:
             self.max_turns = CLI_CONFIG["agent"]["max_turns"]
         elif CLI_CONFIG.get("max_turns"):  # Backwards compat: root-level max_turns
             self.max_turns = CLI_CONFIG["max_turns"]
-        elif os.getenv("HERMES_MAX_ITERATIONS"):
-            self.max_turns = int(os.getenv("HERMES_MAX_ITERATIONS"))
+        elif (max_iter := os.getenv("HERMES_MAX_ITERATIONS")):
+            self.max_turns = int(max_iter)
         else:
             self.max_turns = 90
 
@@ -2681,13 +2681,13 @@ class HermesCLI:
             ChatConsole().print(f"[bold red]{message}[/]")
             return False
 
-        api_key = runtime.get("api_key")
-        base_url = runtime.get("base_url")
+        api_key = runtime.get("api_key") or ""
+        base_url = runtime.get("base_url") or ""
         resolved_provider = runtime.get("provider", "openrouter")
         resolved_api_mode = runtime.get("api_mode", self.api_mode)
-        resolved_acp_command = runtime.get("command")
+        resolved_acp_command = runtime.get("command") or ""
         resolved_acp_args = list(runtime.get("args") or [])
-        resolved_credential_pool = runtime.get("credential_pool")
+        resolved_credential_pool = runtime.get("credential_pool") or ""
         if not isinstance(api_key, str) or not api_key:
             # Custom / local endpoints (llama.cpp, ollama, vLLM, etc.) often
             # don't require authentication.  When a base_url IS configured but
@@ -2723,7 +2723,7 @@ class HermesCLI:
         self.acp_command = resolved_acp_command
         self.acp_args = resolved_acp_args
         self._credential_pool = resolved_credential_pool
-        self._provider_source = runtime.get("source")
+        self._provider_source = runtime.get("source") or ""
         self.api_key = api_key
         self.base_url = base_url
 
@@ -2869,12 +2869,12 @@ class HermesCLI:
             effective_model = model_override or self.model
             self.agent = AIAgent(
                 model=effective_model,
-                api_key=runtime.get("api_key"),
-                base_url=runtime.get("base_url"),
-                provider=runtime.get("provider"),
-                api_mode=runtime.get("api_mode"),
-                acp_command=runtime.get("command"),
-                acp_args=runtime.get("args"),
+                api_key=runtime.get("api_key") or "",
+                base_url=runtime.get("base_url") or "",
+                provider=runtime.get("provider") or "",
+                api_mode=runtime.get("api_mode") or "",
+                acp_command=runtime.get("command") or "",
+                acp_args=runtime.get("args") or [],
                 credential_pool=runtime.get("credential_pool"),
                 max_iterations=self.max_turns,
                 enabled_toolsets=self.enabled_toolsets,
@@ -2916,10 +2916,10 @@ class HermesCLI:
             self.agent._print_fn = _cprint
             self._active_agent_route_signature = (
                 effective_model,
-                runtime.get("provider"),
-                runtime.get("base_url"),
-                runtime.get("api_mode"),
-                runtime.get("command"),
+                runtime.get("provider") or "",
+                runtime.get("base_url") or "",
+                runtime.get("api_mode") or "",
+                runtime.get("command") or "",
                 tuple(runtime.get("args") or ()),
             )
 

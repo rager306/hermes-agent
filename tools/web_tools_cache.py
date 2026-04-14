@@ -3,7 +3,8 @@ import functools
 import hashlib
 import json
 import time
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 
 def cache_tool_result(ttl_seconds: int = 300):

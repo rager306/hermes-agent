@@ -1,10 +1,16 @@
 """Tests for parallel tool execution on safe tools."""
 import json
-import pytest
 from types import SimpleNamespace
-from hypothesis import given, settings, assume
+
+from hypothesis import assume, given, settings
 from hypothesis import strategies as st
-from run_agent import _PARALLEL_SAFE_TOOLS, _is_tool_parallel_safe, _should_parallelize_tool_batch, _NEVER_PARALLEL_TOOLS
+
+from run_agent import (
+    _NEVER_PARALLEL_TOOLS,
+    _PARALLEL_SAFE_TOOLS,
+    _is_tool_parallel_safe,
+    _should_parallelize_tool_batch,
+)
 
 
 class TestParallelSafeTools:
@@ -105,4 +111,3 @@ class TestParallelToolExecutionPropertyBased:
         # Different paths do not overlap, so should be parallelizable
         assert _should_parallelize_tool_batch(tool_calls) is True
 
-    

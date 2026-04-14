@@ -2,25 +2,23 @@
 
 import json
 import logging
-import os
-from pathlib import Path
-from unittest.mock import patch, MagicMock, AsyncMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from agent.auxiliary_client import (
-    get_text_auxiliary_client,
-    get_available_vision_backends,
-    resolve_vision_provider_client,
-    resolve_provider_client,
-    auxiliary_max_tokens_param,
-    call_llm,
-    async_call_llm,
-    _read_codex_access_token,
     _get_provider_chain,
     _is_payment_error,
-    _try_payment_fallback,
+    _read_codex_access_token,
     _resolve_auto,
+    _try_payment_fallback,
+    async_call_llm,
+    auxiliary_max_tokens_param,
+    call_llm,
+    get_available_vision_backends,
+    get_text_auxiliary_client,
+    resolve_provider_client,
+    resolve_vision_provider_client,
 )
 
 
@@ -198,8 +196,8 @@ class TestAnthropicOAuthFlag:
         monkeypatch.setenv("ANTHROPIC_TOKEN", "sk-ant-oat01-test-token")
         with patch("agent.anthropic_adapter.build_anthropic_client") as mock_build:
             mock_build.return_value = MagicMock()
-            from agent.auxiliary_client import _try_anthropic, AnthropicAuxiliaryClient
-            client, model = _try_anthropic()
+            from agent.auxiliary_client import AnthropicAuxiliaryClient, _try_anthropic
+            client, _model = _try_anthropic()
             assert client is not None
             assert isinstance(client, AnthropicAuxiliaryClient)
             # The adapter inside should have is_oauth=True
@@ -212,8 +210,8 @@ class TestAnthropicOAuthFlag:
              patch("agent.anthropic_adapter.build_anthropic_client") as mock_build, \
              patch("agent.auxiliary_client._select_pool_entry", return_value=(False, None)):
             mock_build.return_value = MagicMock()
-            from agent.auxiliary_client import _try_anthropic, AnthropicAuxiliaryClient
-            client, model = _try_anthropic()
+            from agent.auxiliary_client import AnthropicAuxiliaryClient, _try_anthropic
+            client, _model = _try_anthropic()
             assert client is not None
             assert isinstance(client, AnthropicAuxiliaryClient)
             adapter = client.chat.completions
@@ -293,8 +291,8 @@ class TestExpiredCodexFallback:
         monkeypatch.setenv("ANTHROPIC_TOKEN", "sk-ant-oat01-test-fallback")
         with patch("agent.anthropic_adapter.build_anthropic_client") as mock_build:
             mock_build.return_value = MagicMock()
-            from agent.auxiliary_client import _resolve_auto, AnthropicAuxiliaryClient
-            client, model = _resolve_auto()
+            from agent.auxiliary_client import _resolve_auto
+            client, _model = _resolve_auto()
             # Should NOT be Codex, should be Anthropic (or another available provider)
             assert not isinstance(client, type(None)), "Should find a provider after expired Codex"
 
@@ -325,7 +323,7 @@ class TestExpiredCodexFallback:
         with patch("agent.auxiliary_client.OpenAI") as mock_openai:
             mock_openai.return_value = MagicMock()
             from agent.auxiliary_client import _resolve_auto
-            client, model = _resolve_auto()
+            client, _model = _resolve_auto()
             assert client is not None
             # OpenRouter is 1st in chain, should win
             mock_openai.assert_called()
@@ -358,7 +356,7 @@ class TestExpiredCodexFallback:
             with patch("agent.auxiliary_client.OpenAI") as mock_openai:
                 mock_openai.return_value = MagicMock()
                 from agent.auxiliary_client import _resolve_auto
-                client, model = _resolve_auto()
+                client, _model = _resolve_auto()
                 assert client is not None
 
 
@@ -369,8 +367,8 @@ class TestExpiredCodexFallback:
              patch("agent.anthropic_adapter.build_anthropic_client") as mock_build, \
              patch("agent.auxiliary_client._select_pool_entry", return_value=(False, None)):
             mock_build.return_value = MagicMock()
-            from agent.auxiliary_client import _try_anthropic, AnthropicAuxiliaryClient
-            client, model = _try_anthropic()
+            from agent.auxiliary_client import _try_anthropic
+            client, _model = _try_anthropic()
             assert client is not None, "Should resolve token"
             adapter = client.chat.completions
             assert adapter._is_oauth is True, "Non-sk-ant-api token should set is_oauth=True"
@@ -424,8 +422,8 @@ class TestExpiredCodexFallback:
         monkeypatch.delenv("ANTHROPIC_TOKEN", raising=False)
         with patch("agent.anthropic_adapter.build_anthropic_client") as mock_build:
             mock_build.return_value = MagicMock()
-            from agent.auxiliary_client import _try_anthropic, AnthropicAuxiliaryClient
-            client, model = _try_anthropic()
+            from agent.auxiliary_client import _try_anthropic
+            client, _model = _try_anthropic()
             assert client is not None
             adapter = client.chat.completions
             assert adapter._is_oauth is True
@@ -439,7 +437,7 @@ class TestExplicitProviderRouting:
         monkeypatch.setenv("ANTHROPIC_TOKEN", "sk-ant-oat01-explicit-test")
         with patch("agent.anthropic_adapter.build_anthropic_client") as mock_build:
             mock_build.return_value = MagicMock()
-            client, model = resolve_provider_client("anthropic")
+            client, _model = resolve_provider_client("anthropic")
             assert client is not None
             # Verify OAuth flag propagated
             adapter = client.chat.completions
@@ -451,7 +449,7 @@ class TestExplicitProviderRouting:
              patch("agent.anthropic_adapter.build_anthropic_client") as mock_build, \
              patch("agent.auxiliary_client._select_pool_entry", return_value=(False, None)):
             mock_build.return_value = MagicMock()
-            client, model = resolve_provider_client("anthropic")
+            client, _model = resolve_provider_client("anthropic")
             assert client is not None
             adapter = client.chat.completions
             assert adapter._is_oauth is False
@@ -461,7 +459,7 @@ class TestExplicitProviderRouting:
         monkeypatch.setenv("OPENROUTER_API_KEY", "or-explicit")
         with patch("agent.auxiliary_client.OpenAI") as mock_openai:
             mock_openai.return_value = MagicMock()
-            client, model = resolve_provider_client("openrouter")
+            client, _model = resolve_provider_client("openrouter")
             assert client is not None
 
     def test_explicit_kimi(self, monkeypatch):
@@ -469,7 +467,7 @@ class TestExplicitProviderRouting:
         monkeypatch.setenv("KIMI_API_KEY", "kimi-test-key")
         with patch("agent.auxiliary_client.OpenAI") as mock_openai:
             mock_openai.return_value = MagicMock()
-            client, model = resolve_provider_client("kimi-coding")
+            client, _model = resolve_provider_client("kimi-coding")
             assert client is not None
 
     def test_explicit_minimax(self, monkeypatch):
@@ -477,7 +475,7 @@ class TestExplicitProviderRouting:
         monkeypatch.setenv("MINIMAX_API_KEY", "mm-test-key")
         with patch("agent.auxiliary_client.OpenAI") as mock_openai:
             mock_openai.return_value = MagicMock()
-            client, model = resolve_provider_client("minimax")
+            client, _model = resolve_provider_client("minimax")
             assert client is not None
 
     def test_explicit_deepseek(self, monkeypatch):
@@ -485,7 +483,7 @@ class TestExplicitProviderRouting:
         monkeypatch.setenv("DEEPSEEK_API_KEY", "ds-test-key")
         with patch("agent.auxiliary_client.OpenAI") as mock_openai:
             mock_openai.return_value = MagicMock()
-            client, model = resolve_provider_client("deepseek")
+            client, _model = resolve_provider_client("deepseek")
             assert client is not None
 
     def test_explicit_zai(self, monkeypatch):
@@ -493,7 +491,7 @@ class TestExplicitProviderRouting:
         monkeypatch.setenv("GLM_API_KEY", "zai-test-key")
         with patch("agent.auxiliary_client.OpenAI") as mock_openai:
             mock_openai.return_value = MagicMock()
-            client, model = resolve_provider_client("zai")
+            client, _model = resolve_provider_client("zai")
             assert client is not None
 
     def test_explicit_google_alias_uses_gemini_credentials(self):
@@ -515,7 +513,7 @@ class TestExplicitProviderRouting:
 
     def test_explicit_unknown_returns_none(self, monkeypatch):
         """Unknown provider should return None."""
-        client, model = resolve_provider_client("nonexistent-provider")
+        client, _model = resolve_provider_client("nonexistent-provider")
         assert client is None
 
 
@@ -525,7 +523,7 @@ class TestGetTextAuxiliaryClient:
     def test_openrouter_takes_priority(self, monkeypatch, codex_auth_dir):
         monkeypatch.setenv("OPENROUTER_API_KEY", "or-key")
         with patch("agent.auxiliary_client.OpenAI") as mock_openai:
-            client, model = get_text_auxiliary_client()
+            _client, model = get_text_auxiliary_client()
         assert model == "google/gemini-3-flash-preview"
         mock_openai.assert_called_once()
         call_kwargs = mock_openai.call_args
@@ -533,9 +531,9 @@ class TestGetTextAuxiliaryClient:
 
     def test_nous_takes_priority_over_codex(self, monkeypatch, codex_auth_dir):
         with patch("agent.auxiliary_client._read_nous_auth") as mock_nous, \
-             patch("agent.auxiliary_client.OpenAI") as mock_openai:
+             patch("agent.auxiliary_client.OpenAI"):
             mock_nous.return_value = {"access_token": "nous-tok"}
-            client, model = get_text_auxiliary_client()
+            _client, model = get_text_auxiliary_client()
         assert model == "google/gemini-3-flash-preview"
 
     def test_custom_endpoint_over_codex(self, monkeypatch, codex_auth_dir):
@@ -556,7 +554,7 @@ class TestGetTextAuxiliaryClient:
         )
         with patch("agent.auxiliary_client._read_nous_auth", return_value=None), \
              patch("agent.auxiliary_client.OpenAI") as mock_openai:
-            client, model = get_text_auxiliary_client()
+            _client, model = get_text_auxiliary_client()
         assert model == "my-local-model"
         call_kwargs = mock_openai.call_args
         assert call_kwargs.kwargs["base_url"] == "http://localhost:1234/v1"
@@ -586,7 +584,7 @@ class TestGetTextAuxiliaryClient:
 
     def test_codex_fallback_when_nothing_else(self, codex_auth_dir):
         with patch("agent.auxiliary_client._read_nous_auth", return_value=None), \
-             patch("agent.auxiliary_client.OpenAI") as mock_openai:
+             patch("agent.auxiliary_client.OpenAI"):
             client, model = get_text_auxiliary_client()
         assert model == "gpt-5.2-codex"
         # Returns a CodexAuxiliaryClient wrapper, not a raw OpenAI client
@@ -786,7 +784,7 @@ class TestAuxiliaryPoolAwareness:
             patch("agent.anthropic_adapter.build_anthropic_client", return_value=MagicMock()),
             patch("agent.anthropic_adapter.resolve_anthropic_token", return_value="***"),
         ):
-            client, model = get_vision_auxiliary_client()
+            client, _model = get_vision_auxiliary_client()  # noqa: F821
 
         assert client is not None
         assert client.__class__.__name__ == "AnthropicAuxiliaryClient"
@@ -803,7 +801,7 @@ class TestAuxiliaryPoolAwareness:
             patch("agent.anthropic_adapter.build_anthropic_client", return_value=MagicMock()),
             patch("agent.anthropic_adapter.resolve_anthropic_token", return_value="***"),
         ):
-            provider, client, model = resolve_vision_provider_client()
+            provider, _client, _model = resolve_vision_provider_client()
 
         # Active provider should win over OpenRouter
         assert provider == "anthropic"
@@ -817,8 +815,8 @@ class TestAuxiliaryPoolAwareness:
              patch("agent.auxiliary_client._read_main_provider", return_value="custom:local"), \
              patch("agent.auxiliary_client._read_main_model", return_value="my-local-model"), \
              patch("agent.auxiliary_client.resolve_provider_client",
-                   return_value=(MagicMock(), "my-local-model")) as mock_resolve:
-            provider, client, model = resolve_vision_provider_client()
+                   return_value=(MagicMock(), "my-local-model")):
+            provider, client, _model = resolve_vision_provider_client()
         assert client is not None
         assert provider == "custom:local"
 
@@ -865,7 +863,7 @@ class TestTaskSpecificOverrides:
         )
         monkeypatch.setenv("HERMES_HOME", str(hermes_home))
         with patch("agent.auxiliary_client.OpenAI") as mock_openai:
-            client, model = get_text_auxiliary_client("web_extract")
+            _client, model = get_text_auxiliary_client("web_extract")
         assert model == "config-model"
         assert mock_openai.call_args.kwargs["base_url"] == "http://localhost:3456/v1"
         assert mock_openai.call_args.kwargs["api_key"] == "config-key"
@@ -874,7 +872,7 @@ class TestTaskSpecificOverrides:
         """A task with no provider env var falls through to auto chain."""
         monkeypatch.setenv("OPENROUTER_API_KEY", "or-key")
         with patch("agent.auxiliary_client.OpenAI"):
-            client, model = get_text_auxiliary_client("compression")
+            _client, model = get_text_auxiliary_client("compression")
         assert model == "google/gemini-3-flash-preview"  # auto → OpenRouter
 
     def test_resolve_auto_prefers_live_main_runtime_over_persisted_config(self, monkeypatch, tmp_path):
@@ -1016,7 +1014,8 @@ class TestGetProviderChain:
 
     def test_picks_up_patched_functions(self):
         """Patches on _try_* functions must be visible in the chain."""
-        sentinel = lambda: ("patched", "model")
+        def sentinel():
+            return ("patched", "model")
         with patch("agent.auxiliary_client._try_openrouter", sentinel):
             chain = _get_provider_chain()
         assert chain[0] == ("openrouter", sentinel)
@@ -1042,7 +1041,7 @@ class TestTryPaymentFallback:
              patch("agent.auxiliary_client._try_codex", return_value=(None, None)), \
              patch("agent.auxiliary_client._resolve_api_key_provider", return_value=(None, None)), \
              patch("agent.auxiliary_client._read_main_provider", return_value="openrouter"):
-            client, model, label = _try_payment_fallback("openrouter")
+            client, _model, label = _try_payment_fallback("openrouter")
         assert client is None
         assert label == ""
 
@@ -1052,7 +1051,7 @@ class TestTryPaymentFallback:
         with patch("agent.auxiliary_client._try_openrouter", return_value=(mock_client, "or-model")), \
              patch("agent.auxiliary_client._try_codex", return_value=(None, None)), \
              patch("agent.auxiliary_client._read_main_provider", return_value="openai-codex"):
-            client, model, label = _try_payment_fallback("openai-codex", task="vision")
+            client, _model, label = _try_payment_fallback("openai-codex", task="vision")
         assert client is mock_client
         assert label == "openrouter"
 
@@ -1201,6 +1200,7 @@ class TestCallLlmPaymentFallback:
 def test_resolve_api_key_provider_skips_unconfigured_anthropic(monkeypatch):
     """_resolve_api_key_provider must not try anthropic when user never configured it."""
     from collections import OrderedDict
+
     from hermes_cli.auth import ProviderConfig
 
     # Build a minimal registry with only "anthropic" so the loop is guaranteed
@@ -1286,7 +1286,7 @@ class TestTryPaymentFallbackReason:
             lambda: "",
         )
 
-        client, model, label = _try_payment_fallback(
+        client, _model, label = _try_payment_fallback(
             "openrouter", task="compression", reason="connection error"
         )
         assert client is None

@@ -19,9 +19,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from gateway.config import GatewayConfig, Platform, PlatformConfig
+from gateway.run import GatewayRunner
 from gateway.platforms.base import MessageEvent, SendResult
 from gateway.session import SessionEntry, SessionSource, build_session_key
-
 
 # Platform library mocks
 
@@ -113,13 +113,12 @@ _ensure_telegram_mock()
 _ensure_discord_mock()
 _ensure_slack_mock()
 
-from gateway.platforms.discord import DiscordAdapter   # noqa: E402
-from gateway.platforms.telegram import TelegramAdapter  # noqa: E402
+import gateway.platforms.slack as _slack_mod
+from gateway.platforms.discord import DiscordAdapter
+from gateway.platforms.telegram import TelegramAdapter
 
-import gateway.platforms.slack as _slack_mod  # noqa: E402
 _slack_mod.SLACK_AVAILABLE = True
-from gateway.platforms.slack import SlackAdapter  # noqa: E402
-
+from gateway.platforms.slack import SlackAdapter
 
 # Platform-generic factories
 

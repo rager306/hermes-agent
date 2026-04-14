@@ -9,17 +9,20 @@ Usage in execute_code:
     exec(open(os.path.expanduser(
         "~/.hermes/skills/red-teaming/godmode/scripts/auto_jailbreak.py"
     )).read())
-    
+
     result = auto_jailbreak()  # Uses current model from config
     # or:
     result = auto_jailbreak(model="anthropic/claude-sonnet-4")
 """
 
-import os
 import json
+import os
 import time
-import yaml
 from pathlib import Path
+
+import yaml
+
+from parseltongue import escalate_encoding, score_response
 
 try:
     from openai import OpenAI
@@ -46,6 +49,7 @@ _race_path = _SCRIPTS_DIR / "godmode_race.py"
 
 # Use the calling frame's globals so functions are accessible everywhere
 import inspect as _inspect
+
 _caller_globals = _inspect.stack()[0][0].f_globals if len(_inspect.stack()) > 0 else globals()
 
 if _parseltongue_path.exists():
@@ -336,7 +340,7 @@ def _get_current_model() -> tuple:
         return None, None
 
 
-def _get_api_key(base_url: str = None) -> str:
+def _get_api_key(base_url: str | None = None) -> str:
     """Get the appropriate API key."""
     if base_url and "openrouter" in base_url:
         return os.getenv("OPENROUTER_API_KEY", "")
@@ -380,7 +384,7 @@ def _build_messages(system_prompt=None, prefill=None, query=None):
     return messages
 
 
-def _write_config(system_prompt: str = None, prefill_file: str = None):
+def _write_config(system_prompt: str | None = None, prefill_file: str | None = None):
     """Write jailbreak settings to config.yaml (merges, doesn't overwrite)."""
     cfg = {}
     if CONFIG_PATH.exists():
@@ -420,12 +424,12 @@ def _write_prefill(prefill_messages: list):
 def auto_jailbreak(model=None, base_url=None, api_key=None,
                    canary=None, dry_run=False, verbose=True):
     """Auto-jailbreak pipeline.
-    
+
     1. Detects model family
     2. Tries strategies in order (model-specific → generic)
     3. Tests each with a canary query
     4. Locks in the winning combo (writes config.yaml + prefill.json)
-    
+
     Args:
         model: Model ID (e.g. "anthropic/claude-sonnet-4"). Auto-detected if None.
         base_url: API base URL. Auto-detected if None.
@@ -433,7 +437,7 @@ def auto_jailbreak(model=None, base_url=None, api_key=None,
         canary: Custom canary query to test with. Uses default if None.
         dry_run: If True, don't write config files — just report what would work.
         verbose: Print progress.
-    
+
     Returns:
         Dict with: success, model, family, strategy, system_prompt, prefill,
                     score, content_preview, config_path, prefill_path, attempts
@@ -473,7 +477,7 @@ def auto_jailbreak(model=None, base_url=None, api_key=None,
     if verbose:
         print("[BASELINE] Testing without jailbreak...")
     baseline_msgs = _build_messages(query=canary_query)
-    baseline_content, baseline_latency, baseline_error = _test_query(
+    baseline_content, _baseline_latency, baseline_error = _test_query(
         client, model, baseline_msgs
     )
     baseline_score = score_response(baseline_content, canary_query) if baseline_content else {"score": -9999, "is_refusal": True, "hedge_count": 0}
@@ -609,13 +613,13 @@ def auto_jailbreak(model=None, base_url=None, api_key=None,
 
         # Try with system prompt + prefill combined
         if verbose:
-            print(f"  [RETRY] Adding prefill messages...")
+            print("  [RETRY] Adding prefill messages...")
         msgs = _build_messages(
             system_prompt=system_prompt,
             prefill=STANDARD_PREFILL,
             query=canary_query,
         )
-        content, latency, error = _test_query(client, model, msgs)
+        content, _latency, error = _test_query(client, model, msgs)
         result = score_response(content, canary_query) if content else {"score": -9999, "is_refusal": True, "hedge_count": 0}
 
         attempts.append({

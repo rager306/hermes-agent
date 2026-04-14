@@ -2607,7 +2607,7 @@ class TestAdapterBehavior(unittest.TestCase):
 class TestWebhookSecurity(unittest.TestCase):
     """Tests for webhook signature verification, rate limiting, and body size limits."""
 
-    def _make_adapter(self, encrypt_key: str = "") -> "FeishuAdapter":
+    def _make_adapter(self, encrypt_key: str = "") -> "FeishuAdapter":  # noqa: F821
         from gateway.config import PlatformConfig
         from gateway.platforms.feishu import FeishuAdapter
 
@@ -2616,8 +2616,7 @@ class TestWebhookSecurity(unittest.TestCase):
 
     def test_signature_valid_passes(self):
         import hashlib
-        from gateway.platforms.feishu import FeishuAdapter
-        from gateway.config import PlatformConfig
+
 
         encrypt_key = "test_secret"
         adapter = self._make_adapter(encrypt_key)
@@ -2669,7 +2668,7 @@ class TestWebhookSecurity(unittest.TestCase):
     @patch.dict(os.environ, {}, clear=True)
     def test_webhook_request_rejects_oversized_body(self):
         from gateway.config import PlatformConfig
-        from gateway.platforms.feishu import FeishuAdapter, _FEISHU_WEBHOOK_MAX_BODY_BYTES
+        from gateway.platforms.feishu import _FEISHU_WEBHOOK_MAX_BODY_BYTES, FeishuAdapter
 
         adapter = FeishuAdapter(PlatformConfig())
         # Simulate a request whose Content-Length already signals oversize.
@@ -2745,7 +2744,7 @@ class TestDedupTTL(unittest.TestCase):
     @patch.dict(os.environ, {}, clear=True)
     def test_expired_entry_is_not_considered_duplicate(self):
         from gateway.config import PlatformConfig
-        from gateway.platforms.feishu import FeishuAdapter, _FEISHU_DEDUP_TTL_SECONDS
+        from gateway.platforms.feishu import _FEISHU_DEDUP_TTL_SECONDS, FeishuAdapter
 
         adapter = FeishuAdapter(PlatformConfig())
         # Plant an entry that expired well past the TTL.

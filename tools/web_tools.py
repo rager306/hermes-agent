@@ -56,6 +56,7 @@ from agent.auxiliary_client import (
     get_async_text_auxiliary_client,
 )
 from tools.debug_helpers import DebugSession
+from tools.web_tools_cache import cache_tool_result
 from tools.managed_tool_gateway import (
     build_vendor_gateway_url,
     resolve_managed_tool_gateway,
@@ -1035,6 +1036,7 @@ async def _parallel_extract(urls: list[str]) -> list[dict[str, Any]]:
     return results
 
 
+@cache_tool_result(ttl_seconds=300)
 def web_search_tool(query: str, limit: int = 5) -> str:
     """
     Search the web for information using available search API backend.

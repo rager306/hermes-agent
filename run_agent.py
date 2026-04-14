@@ -440,6 +440,8 @@ def _strip_budget_warnings_from_history(messages: list) -> None:
             msg["content"] = cleaned
 
 
+HERMES_TOOL_DELAY = float(os.environ.get("HERMES_TOOL_DELAY", 1.0))
+
 class AIAgent:
     """
     AI Agent with tool calling capabilities.
@@ -469,7 +471,7 @@ class AIAgent:
         args: list[str] | None = None,
         model: str = "anthropic/claude-opus-4.6",  # OpenRouter format
         max_iterations: int = 90,  # Default tool-calling iterations (shared with subagents)
-        tool_delay: float = 1.0,
+        tool_delay: float = HERMES_TOOL_DELAY,
         enabled_toolsets: List[str] = None,
         disabled_toolsets: List[str] = None,
         save_trajectories: bool = False,

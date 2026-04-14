@@ -241,6 +241,7 @@ class IterationBudget:
 _NEVER_PARALLEL_TOOLS = frozenset({"clarify"})
 
 # Read-only tools with no shared mutable session state.
+
 _PARALLEL_SAFE_TOOLS = frozenset({
     "ha_get_state",
     "ha_list_entities",
@@ -254,6 +255,11 @@ _PARALLEL_SAFE_TOOLS = frozenset({
     "web_extract",
     "web_search",
 })
+
+
+def _is_tool_parallel_safe(tool_name: str) -> bool:
+    """Check if a tool is safe to run in parallel with other tools."""
+    return tool_name in _PARALLEL_SAFE_TOOLS
 
 # File tools can run concurrently when they target independent paths.
 _PATH_SCOPED_TOOLS = frozenset({"read_file", "write_file", "patch"})

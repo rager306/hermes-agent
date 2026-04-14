@@ -10,12 +10,9 @@ so it can run without optional dependencies like firecrawl.
 
 import asyncio
 import threading
-from concurrent.futures import ThreadPoolExecutor
-from unittest.mock import patch, MagicMock
-from types import SimpleNamespace
+from unittest.mock import MagicMock, patch
 
 import pytest
-
 
 # ---------------------------------------------------------------------------
 # Minimal stubs so we can import _get_cached_client without the full tree
@@ -32,7 +29,6 @@ def _stub_resolve_provider_client(provider, model, async_mode, **kw):
 @pytest.fixture(autouse=True)
 def _clean_client_cache():
     """Clear the client cache before each test."""
-    import importlib
     # We need to patch before importing
     with patch.dict("sys.modules", {}):
         pass
@@ -48,7 +44,7 @@ class TestCrossLoopCacheIsolation:
 
     def test_same_loop_reuses_client(self):
         """Within a single event loop, the same client should be returned."""
-        from agent.auxiliary_client import _get_cached_client, _client_cache
+        from agent.auxiliary_client import _get_cached_client
 
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
@@ -83,8 +79,10 @@ class TestCrossLoopCacheIsolation:
 
         t1 = threading.Thread(target=_get_client_on_new_loop, args=("a",))
         t2 = threading.Thread(target=_get_client_on_new_loop, args=("b",))
-        t1.start(); t1.join()
-        t2.start(); t2.join()
+        t1.start()
+        t1.join()
+        t2.start()
+        t2.join()
 
         client_id_a, loop_id_a = results["a"]
         client_id_b, loop_id_b = results["b"]
@@ -113,8 +111,10 @@ class TestCrossLoopCacheIsolation:
 
         t1 = threading.Thread(target=_get_sync_client, args=("a",))
         t2 = threading.Thread(target=_get_sync_client, args=("b",))
-        t1.start(); t1.join()
-        t2.start(); t2.join()
+        t1.start()
+        t1.join()
+        t2.start()
+        t2.join()
 
         assert results["a"] == results["b"], (
             "Sync clients should be shared across threads (no loop binding)"

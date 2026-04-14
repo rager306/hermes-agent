@@ -7,13 +7,13 @@ Verifies that:
 4. The background watcher can detect expired sessions
 """
 
-import pytest
 from datetime import datetime, timedelta
-from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
-from gateway.config import Platform, GatewayConfig, SessionResetPolicy
-from gateway.session import SessionSource, SessionStore, SessionEntry
+import pytest
+
+from gateway.config import GatewayConfig, Platform, SessionResetPolicy
+from gateway.session import SessionEntry, SessionSource, SessionStore
 
 
 @pytest.fixture()

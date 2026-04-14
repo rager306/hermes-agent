@@ -6,15 +6,9 @@ any actual MCP servers or API keys.
 """
 
 import argparse
-import json
-import os
-import types
 from pathlib import Path
-from typing import Any, Dict, List
-from unittest.mock import MagicMock, patch, PropertyMock
 
 import pytest
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -352,8 +346,8 @@ class TestMcpAdd:
         )
         monkeypatch.setattr("builtins.input", lambda _: "")
 
-        from hermes_cli.mcp_config import cmd_mcp_add
         from hermes_cli.config import read_raw_config
+        from hermes_cli.mcp_config import cmd_mcp_add
 
         cmd_mcp_add(_make_args(name="myserver", preset="testmcp"))
         out = capsys.readouterr().out
@@ -384,8 +378,8 @@ class TestMcpAdd:
         )
         monkeypatch.setattr("builtins.input", lambda _: "")
 
-        from hermes_cli.mcp_config import cmd_mcp_add
         from hermes_cli.config import read_raw_config
+        from hermes_cli.mcp_config import cmd_mcp_add
 
         cmd_mcp_add(_make_args(
             name="custom",
@@ -494,7 +488,7 @@ class TestEnvVarInterpolation:
 
 class TestConfigHelpers:
     def test_save_and_load_mcp_server(self, tmp_path):
-        from hermes_cli.mcp_config import _save_mcp_server, _get_mcp_servers
+        from hermes_cli.mcp_config import _get_mcp_servers, _save_mcp_server
 
         _save_mcp_server("mysvr", {"url": "https://example.com/mcp"})
         servers = _get_mcp_servers()
@@ -503,9 +497,9 @@ class TestConfigHelpers:
 
     def test_remove_mcp_server(self, tmp_path):
         from hermes_cli.mcp_config import (
-            _save_mcp_server,
-            _remove_mcp_server,
             _get_mcp_servers,
+            _remove_mcp_server,
+            _save_mcp_server,
         )
 
         _save_mcp_server("s1", {"command": "test"})

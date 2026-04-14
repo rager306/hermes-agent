@@ -2,16 +2,14 @@
 
 import json
 import os
-from pathlib import Path
 from unittest.mock import patch
 
 from gateway.channel_directory import (
+    _build_from_sessions,
     build_channel_directory,
-    resolve_channel_name,
     format_directory_for_display,
     load_directory,
-    _build_from_sessions,
-    DIRECTORY_PATH,
+    resolve_channel_name,
 )
 
 

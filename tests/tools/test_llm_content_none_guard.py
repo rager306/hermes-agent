@@ -12,12 +12,10 @@ reasoning fields when content is empty.
 
 import asyncio
 import types
-from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from agent.auxiliary_client import extract_content_or_reasoning
-
 
 # ── helpers ────────────────────────────────────────────────────────────────
 

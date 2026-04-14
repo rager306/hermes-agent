@@ -20,8 +20,8 @@ Benchmarks (eval-only):
 
 try:
     from environments.agent_loop import AgentResult, HermesAgentLoop
-    from environments.tool_context import ToolContext
     from environments.hermes_base_env import HermesAgentBaseEnv, HermesAgentEnvConfig
+    from environments.tool_context import ToolContext
 except ImportError:
     # atroposlib not installed — environments are unavailable but
     # submodules like tool_call_parsers can still be imported directly.
@@ -29,8 +29,8 @@ except ImportError:
 
 __all__ = [
     "AgentResult",
-    "HermesAgentLoop",
-    "ToolContext",
     "HermesAgentBaseEnv",
     "HermesAgentEnvConfig",
+    "HermesAgentLoop",
+    "ToolContext",
 ]

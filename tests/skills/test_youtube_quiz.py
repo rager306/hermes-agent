@@ -3,7 +3,6 @@
 import json
 import sys
 from pathlib import Path
-from types import SimpleNamespace
 from unittest import mock
 
 import pytest
@@ -16,7 +15,7 @@ import youtube_quiz
 
 def _run(capsys, argv: list[str]) -> dict:
     """Run main() with given argv and return parsed JSON output."""
-    with mock.patch("sys.argv", ["youtube_quiz"] + argv):
+    with mock.patch("sys.argv", ["youtube_quiz", *argv]):
         youtube_quiz.main()
     captured = capsys.readouterr()
     return json.loads(captured.out)
@@ -51,7 +50,7 @@ class TestFetchMissingDependency:
 
         monkeypatch.setattr(builtins, "__import__", mock_import)
 
-        with pytest.raises(SystemExit) as exc_info:
+        with pytest.raises(SystemExit):
             _run(capsys, ["fetch", "test123"])
 
         captured = capsys.readouterr()

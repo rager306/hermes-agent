@@ -16,15 +16,13 @@ Subclasses only need to implement:
     evaluate()        -- Periodic evaluation
 """
 
-import asyncio
-import json
 import logging
 import os
 import sys
 import uuid
 from abc import abstractmethod
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Any
 
 # Ensure the hermes-agent repo root is on sys.path so that imports like
 # `from model_tools import ...` and `from environments.X import ...` work
@@ -45,6 +43,7 @@ if _env_path.exists():
 # This patches SwerexModalEnvironment to use a background thread instead of
 # asyncio.run(), which would deadlock inside Atropos. Safe for normal CLI too.
 from environments.patches import apply_patches
+
 apply_patches()
 
 from atroposlib.envs.base import (
@@ -56,20 +55,19 @@ from atroposlib.envs.base import (
 from atroposlib.envs.server_handling.server_manager import (
     APIServerConfig,
     ServerBaseline,
-    ServerManager,
 )
 from atroposlib.type_definitions import Item
 
 from environments.agent_loop import AgentResult, HermesAgentLoop
 from environments.tool_context import ToolContext
-from tools.budget_config import (
-    DEFAULT_RESULT_SIZE_CHARS,
-    DEFAULT_TURN_BUDGET_CHARS,
-    DEFAULT_PREVIEW_SIZE_CHARS,
-)
 
 # Import hermes-agent toolset infrastructure
 from model_tools import get_tool_definitions
+from tools.budget_config import (
+    DEFAULT_PREVIEW_SIZE_CHARS,
+    DEFAULT_RESULT_SIZE_CHARS,
+    DEFAULT_TURN_BUDGET_CHARS,
+)
 from toolset_distributions import sample_toolsets_from_distribution
 
 logger = logging.getLogger(__name__)
@@ -85,16 +83,16 @@ class HermesAgentEnvConfig(BaseEnvConfig):
 
     # --- Toolset configuration ---
     # Mutually exclusive: use either enabled_toolsets OR distribution
-    enabled_toolsets: Optional[List[str]] = Field(
+    enabled_toolsets: list[str] | None = Field(
         default=None,
         description="Explicit list of hermes toolsets to enable (e.g., ['terminal', 'file', 'web']). "
         "If None and distribution is also None, all available toolsets are enabled.",
     )
-    disabled_toolsets: Optional[List[str]] = Field(
+    disabled_toolsets: list[str] | None = Field(
         default=None,
         description="Toolsets to disable. Applied as a filter on top of enabled_toolsets or distribution.",
     )
-    distribution: Optional[str] = Field(
+    distribution: str | None = Field(
         default=None,
         description="Name of a toolset distribution from toolset_distributions.py "
         "(e.g., 'development', 'terminal_tasks'). Sampled once per group. "
@@ -106,7 +104,7 @@ class HermesAgentEnvConfig(BaseEnvConfig):
         default=30,
         description="Maximum number of LLM calls (tool-calling iterations) per rollout.",
     )
-    system_prompt: Optional[str] = Field(
+    system_prompt: str | None = Field(
         default=None,
         description="System prompt for the agent. Tools are handled via the tools= parameter, "
         "not embedded in the prompt text.",
@@ -136,7 +134,7 @@ class HermesAgentEnvConfig(BaseEnvConfig):
     )
 
     # --- Dataset ---
-    dataset_name: Optional[str] = Field(
+    dataset_name: str | None = Field(
         default=None,
         description="HuggingFace dataset name. Optional if tasks are defined inline.",
     )
@@ -183,7 +181,7 @@ class HermesAgentEnvConfig(BaseEnvConfig):
         default=DEFAULT_PREVIEW_SIZE_CHARS,
         description="Size of the inline preview shown after a tool result is persisted.",
     )
-    tool_result_overrides: Optional[Dict[str, int]] = Field(
+    tool_result_overrides: dict[str, int] | None = Field(
         default=None,
         description="Per-tool threshold overrides (chars). Keys are tool names, "
         "values are char thresholds. Overrides both the default and registry "
@@ -200,7 +198,7 @@ class HermesAgentEnvConfig(BaseEnvConfig):
     #       ignore: ["DeepInfra", "Fireworks"]
     #       order: ["Together"]
     #     transforms: ["middle-out"]
-    extra_body: Optional[Dict[str, Any]] = Field(
+    extra_body: dict[str, Any] | None = Field(
         default=None,
         description="Extra body parameters passed to the OpenAI client's "
         "chat.completions.create(). Used for OpenRouter provider preferences, "
@@ -240,13 +238,13 @@ class HermesAgentBaseEnv(BaseEnv):
         evaluate()        -- Periodic evaluation
     """
 
-    name: Optional[str] = "hermes-agent"
+    name: str | None = "hermes-agent"
     env_config_cls = HermesAgentEnvConfig
 
     def __init__(
         self,
         config: HermesAgentEnvConfig,
-        server_configs: Union[ServerBaseline, List[APIServerConfig]],
+        server_configs: ServerBaseline | list[APIServerConfig],
         slurm=False,
         testing=False,
     ):
@@ -277,16 +275,16 @@ class HermesAgentBaseEnv(BaseEnv):
             print(f"🔧 Tool parser: {config.tool_call_parser}")
 
         # Current group's resolved tools (set in collect_trajectories)
-        self._current_group_tools: Optional[Tuple[List[Dict], Set[str]]] = None
+        self._current_group_tools: tuple[list[dict], set[str]] | None = None
 
         # Tool error tracking for wandb logging
-        self._tool_error_buffer: List[Dict[str, Any]] = []
+        self._tool_error_buffer: list[dict[str, Any]] = []
 
     # =========================================================================
     # Toolset resolution (per-group)
     # =========================================================================
 
-    def _resolve_tools_for_group(self) -> Tuple[List[Dict[str, Any]], Set[str]]:
+    def _resolve_tools_for_group(self) -> tuple[list[dict[str, Any]], set[str]]:
         """
         Resolve toolsets for a group. Called once in collect_trajectories(),
         then shared by all collect_trajectory() calls in the group.
@@ -349,9 +347,9 @@ class HermesAgentBaseEnv(BaseEnv):
 
     async def collect_trajectories(
         self, item: Item
-    ) -> Tuple[
-        Union[Optional[ScoredDataGroup], List[Optional[ScoredDataGroup]]],
-        List[Item],
+    ) -> tuple[
+        ScoredDataGroup | None | list[ScoredDataGroup | None],
+        list[Item],
     ]:
         """
         Override collect_trajectories to resolve toolsets once per group,
@@ -373,7 +371,7 @@ class HermesAgentBaseEnv(BaseEnv):
     # =========================================================================
 
     @staticmethod
-    def _format_trajectory_for_display(messages: List[Dict[str, Any]]) -> str:
+    def _format_trajectory_for_display(messages: list[dict[str, Any]]) -> str:
         """
         Format a conversation's messages into a readable trajectory string
         for wandb rollout tables. Shows tool calls, tool results, and reasoning
@@ -415,7 +413,7 @@ class HermesAgentBaseEnv(BaseEnv):
                     parts.append(f"[TOOL CALL] {name}({args})")
 
             elif role == "tool":
-                tool_id = msg.get("tool_call_id", "")
+                msg.get("tool_call_id", "")
                 result = content
                 # Truncate long tool results for display
                 if len(result) > 500:
@@ -459,7 +457,7 @@ class HermesAgentBaseEnv(BaseEnv):
         if len(self.rollouts_for_wandb) > self.config.num_rollouts_to_keep:
             self.rollouts_for_wandb.pop(0)
 
-    async def wandb_log(self, wandb_metrics: Optional[Dict] = None):
+    async def wandb_log(self, wandb_metrics: dict | None = None):
         """Log base metrics including tool errors to wandb."""
         if wandb_metrics is None:
             wandb_metrics = {}
@@ -488,7 +486,7 @@ class HermesAgentBaseEnv(BaseEnv):
 
     async def collect_trajectory(
         self, item: Item
-    ) -> Tuple[Optional[Union[ScoredDataItem, Any]], List[Item]]:
+    ) -> tuple[ScoredDataItem | Any | None, list[Item]]:
         """
         Run a single rollout: agent loop + reward computation.
 
@@ -505,7 +503,7 @@ class HermesAgentBaseEnv(BaseEnv):
             tools, valid_names = self._current_group_tools
 
         # Build initial messages
-        messages: List[Dict[str, Any]] = []
+        messages: list[dict[str, Any]] = []
         if self.config.system_prompt:
             messages.append({"role": "system", "content": self.config.system_prompt})
         messages.append({"role": "user", "content": self.format_prompt(item)})
@@ -609,7 +607,7 @@ class HermesAgentBaseEnv(BaseEnv):
         if nodes:
             # Phase 2 (or DummyManagedServer): use actual node data
             node = nodes[-1]  # Final sequence node = full trajectory
-            scored_item: Dict[str, Any] = {
+            scored_item: dict[str, Any] = {
                 "tokens": node.tokens,
                 "masks": node.masked_tokens,
                 "scores": reward,
@@ -634,7 +632,7 @@ class HermesAgentBaseEnv(BaseEnv):
 
             scored_item = {
                 "tokens": tokens,
-                "masks": [-100] + tokens[1:],  # Mask first token as prompt
+                "masks": [-100, *tokens[1:]],  # Mask first token as prompt
                 "scores": reward,
             }
 

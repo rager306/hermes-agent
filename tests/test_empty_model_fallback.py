@@ -1,7 +1,6 @@
 """Tests for empty model fallback — when provider is configured but model is missing."""
 
-from unittest.mock import MagicMock, patch
-import pytest
+from unittest.mock import patch
 
 
 class TestGetDefaultModelForProvider:
@@ -72,7 +71,7 @@ class TestGatewayEmptyModelFallback:
                  "base_url": "https://chatgpt.com/backend-api/codex",
                  "api_mode": "codex_responses",
              }):
-            model, kwargs = runner._resolve_session_agent_runtime()
+            model, _kwargs = runner._resolve_session_agent_runtime()
 
         assert model == "gpt-5.4", "Explicit model should not be overridden"
 
@@ -90,7 +89,7 @@ class TestGatewayEmptyModelFallback:
                  "base_url": "https://example.com",
                  "api_mode": "chat_completions",
              }):
-            model, kwargs = runner._resolve_session_agent_runtime()
+            model, _kwargs = runner._resolve_session_agent_runtime()
 
         # Can't fill in a default without knowing the provider
         assert model == ""

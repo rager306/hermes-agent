@@ -1,18 +1,17 @@
 """Tests for tools/cronjob_tools.py — prompt scanning, schedule/list/remove dispatchers."""
 
 import json
+
 import pytest
-from pathlib import Path
 
 from tools.cronjob_tools import (
     _scan_cron_prompt,
     check_cronjob_requirements,
     cronjob,
-    schedule_cronjob,
     list_cronjobs,
     remove_cronjob,
+    schedule_cronjob,
 )
-
 
 # =========================================================================
 # Cron prompt scanning

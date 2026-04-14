@@ -1,13 +1,9 @@
 """Tests for DingTalk platform adapter."""
-import asyncio
-import json
-from datetime import datetime, timezone
-from unittest.mock import AsyncMock, MagicMock, patch, PropertyMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from gateway.config import Platform, PlatformConfig
-
 
 # ---------------------------------------------------------------------------
 # Requirements check

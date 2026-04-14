@@ -25,12 +25,14 @@ import sys
 from pathlib import Path
 from typing import List, Optional, Tuple
 
+from agent.context_engine import ContextEngine
+
 logger = logging.getLogger(__name__)
 
 _CONTEXT_ENGINE_PLUGINS_DIR = Path(__file__).parent
 
 
-def discover_context_engines() -> List[Tuple[str, str, bool]]:
+def discover_context_engines() -> list[tuple[str, str, bool]]:
     """Scan plugins/context_engine/ for available engines.
 
     Returns list of (name, description, is_available) tuples.
@@ -76,7 +78,7 @@ def discover_context_engines() -> List[Tuple[str, str, bool]]:
     return results
 
 
-def load_context_engine(name: str) -> Optional["ContextEngine"]:
+def load_context_engine(name: str) -> ContextEngine | None:
     """Load and return a ContextEngine instance by name.
 
     Returns None if the engine is not found or fails to load.
@@ -97,7 +99,7 @@ def load_context_engine(name: str) -> Optional["ContextEngine"]:
         return None
 
 
-def _load_engine_from_dir(engine_dir: Path) -> Optional["ContextEngine"]:
+def _load_engine_from_dir(engine_dir: Path) -> ContextEngine | None:
     """Import an engine module and extract the ContextEngine instance.
 
     The module must have either:

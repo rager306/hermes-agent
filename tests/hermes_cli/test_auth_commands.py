@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import base64
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -510,7 +510,7 @@ def test_auth_list_prefers_explicit_reset_time(monkeypatch, capsys):
     monkeypatch.setattr("hermes_cli.auth_commands.load_pool", lambda provider: _Pool())
     monkeypatch.setattr(
         "hermes_cli.auth_commands.time.time",
-        lambda: datetime(2026, 4, 5, 10, 30, tzinfo=timezone.utc).timestamp(),
+        lambda: datetime(2026, 4, 5, 10, 30, tzinfo=UTC).timestamp(),
     )
 
     class _Args:
@@ -688,6 +688,7 @@ def test_auth_remove_claude_code_suppresses_reseed(tmp_path, monkeypatch):
     (hermes_home / "auth.json").write_text(json.dumps(auth_store))
 
     from types import SimpleNamespace
+
     from hermes_cli.auth_commands import auth_remove_command
     auth_remove_command(SimpleNamespace(provider="anthropic", target="1"))
 

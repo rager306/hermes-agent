@@ -13,20 +13,18 @@ if "dotenv" not in sys.modules:
     sys.modules["dotenv"] = fake_dotenv
 
 from hermes_cli.auth import (
-    PROVIDER_REGISTRY,
-    ProviderConfig,
-    resolve_provider,
-    get_api_key_provider_status,
-    resolve_api_key_provider_credentials,
-    get_external_process_provider_status,
-    resolve_external_process_provider_credentials,
-    get_auth_status,
-    AuthError,
     KIMI_CODE_BASE_URL,
+    PROVIDER_REGISTRY,
+    AuthError,
     _resolve_kimi_base_url,
+    get_api_key_provider_status,
+    get_auth_status,
+    get_external_process_provider_status,
+    resolve_api_key_provider_credentials,
+    resolve_external_process_provider_credentials,
+    resolve_provider,
 )
 from hermes_cli.copilot_auth import _try_gh_cli_token
-
 
 # =============================================================================
 # Provider Registry tests
@@ -666,6 +664,7 @@ class TestHasAnyProviderConfigured:
     def test_config_provider_counts(self, monkeypatch, tmp_path):
         """config.yaml with model.provider set should count as configured."""
         import yaml
+
         from hermes_cli import config as config_module
         hermes_home = tmp_path / ".hermes"
         hermes_home.mkdir()
@@ -686,6 +685,7 @@ class TestHasAnyProviderConfigured:
     def test_config_base_url_counts(self, monkeypatch, tmp_path):
         """config.yaml with model.base_url set (custom endpoint) should count."""
         import yaml
+
         from hermes_cli import config as config_module
         hermes_home = tmp_path / ".hermes"
         hermes_home.mkdir()
@@ -705,6 +705,7 @@ class TestHasAnyProviderConfigured:
     def test_config_api_key_counts(self, monkeypatch, tmp_path):
         """config.yaml with model.api_key set should count."""
         import yaml
+
         from hermes_cli import config as config_module
         hermes_home = tmp_path / ".hermes"
         hermes_home.mkdir()
@@ -724,6 +725,7 @@ class TestHasAnyProviderConfigured:
     def test_config_dict_no_provider_no_creds_still_false(self, monkeypatch, tmp_path):
         """config.yaml model dict with empty default and no creds stays false."""
         import yaml
+
         from hermes_cli import config as config_module
         from hermes_cli.auth import PROVIDER_REGISTRY
         hermes_home = tmp_path / ".hermes"
@@ -751,6 +753,7 @@ class TestHasAnyProviderConfigured:
     def test_claude_code_creds_counted_when_hermes_configured(self, monkeypatch, tmp_path):
         """Claude Code credentials should count when Hermes has been explicitly configured."""
         import yaml
+
         from hermes_cli import config as config_module
         hermes_home = tmp_path / ".hermes"
         hermes_home.mkdir()
@@ -962,8 +965,8 @@ class TestHuggingFaceModels:
 
     def test_model_metadata_has_context_lengths(self):
         """Every HF model should have a context length entry."""
-        from hermes_cli.models import _PROVIDER_MODELS
         from agent.model_metadata import DEFAULT_CONTEXT_LENGTHS
+        from hermes_cli.models import _PROVIDER_MODELS
         lower_keys = {k.lower() for k in DEFAULT_CONTEXT_LENGTHS}
         hf_models = _PROVIDER_MODELS["huggingface"]
         for model in hf_models:

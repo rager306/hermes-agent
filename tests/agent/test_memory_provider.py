@@ -1,11 +1,12 @@
 """Tests for the memory provider interface, manager, and builtin provider."""
 
 import json
-import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
-from agent.memory_provider import MemoryProvider
+import pytest
+
 from agent.memory_manager import MemoryManager
+from agent.memory_provider import MemoryProvider
 
 # ---------------------------------------------------------------------------
 # Concrete test provider

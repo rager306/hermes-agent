@@ -2,14 +2,13 @@
 
 Updated for the mautrix-python SDK (no more matrix-nio / nio imports).
 """
-import io
 import os
 import tempfile
 import types
 from types import SimpleNamespace
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
 
 # Try importing mautrix; skip entire file if not available.
 try:
@@ -21,15 +20,14 @@ except ImportError:
 
 from gateway.platforms.base import MessageType
 
-
 # ---------------------------------------------------------------------------
 # Adapter helpers
 # ---------------------------------------------------------------------------
 
 def _make_adapter():
     """Create a MatrixAdapter with mocked config."""
-    from gateway.platforms.matrix import MatrixAdapter
     from gateway.config import PlatformConfig
+    from gateway.platforms.matrix import MatrixAdapter
 
     config = PlatformConfig(
         enabled=True,

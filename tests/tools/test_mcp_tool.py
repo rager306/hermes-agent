@@ -5,12 +5,10 @@ All tests use mocks -- no real MCP servers or subprocesses are started.
 
 import asyncio
 import json
-import os
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -263,8 +261,8 @@ class TestToolHandler:
 class TestDiscoverAndRegister:
     def test_tools_registered_in_registry(self):
         """_discover_and_register_server registers tools with correct names."""
+        from tools.mcp_tool import MCPServerTask, _discover_and_register_server, _servers
         from tools.registry import ToolRegistry
-        from tools.mcp_tool import _discover_and_register_server, _servers, MCPServerTask
 
         mock_registry = ToolRegistry()
         mock_tools = [
@@ -294,7 +292,7 @@ class TestDiscoverAndRegister:
 
     def test_toolset_created(self):
         """A custom toolset is created for the MCP server."""
-        from tools.mcp_tool import _discover_and_register_server, _servers, MCPServerTask
+        from tools.mcp_tool import MCPServerTask, _discover_and_register_server, _servers
 
         mock_tools = [_make_mcp_tool("ping", "Ping")]
         mock_session = MagicMock()
@@ -320,8 +318,8 @@ class TestDiscoverAndRegister:
 
     def test_schema_format_correct(self):
         """Registered schemas have the correct format."""
+        from tools.mcp_tool import MCPServerTask, _discover_and_register_server, _servers
         from tools.registry import ToolRegistry
-        from tools.mcp_tool import _discover_and_register_server, _servers, MCPServerTask
 
         mock_registry = ToolRegistry()
         mock_tools = [_make_mcp_tool("do_thing", "Do something")]
@@ -635,7 +633,6 @@ class TestToolsetInjection:
             result1 = discover_mcp_tools()
             assert "mcp_good_ping" in result1
             assert "mcp_broken_ping" not in result1
-            first_attempts = call_count
 
             # "Fix" the broken server
             broken_fixed = True
@@ -677,7 +674,7 @@ class TestGracefulFallback:
 class TestShutdown:
     def test_no_servers_safe(self):
         """shutdown_mcp_servers with no servers does nothing."""
-        from tools.mcp_tool import shutdown_mcp_servers, _servers
+        from tools.mcp_tool import _servers, shutdown_mcp_servers
 
         _servers.clear()
         shutdown_mcp_servers()  # Should not raise
@@ -685,7 +682,7 @@ class TestShutdown:
     def test_shutdown_clears_servers(self):
         """shutdown_mcp_servers calls shutdown() on each server and clears dict."""
         import tools.mcp_tool as mcp_mod
-        from tools.mcp_tool import shutdown_mcp_servers, _servers
+        from tools.mcp_tool import _servers, shutdown_mcp_servers
 
         _servers.clear()
         mock_server = MagicMock()
@@ -706,7 +703,7 @@ class TestShutdown:
     def test_shutdown_handles_errors(self):
         """shutdown_mcp_servers handles errors during close gracefully."""
         import tools.mcp_tool as mcp_mod
-        from tools.mcp_tool import shutdown_mcp_servers, _servers
+        from tools.mcp_tool import _servers, shutdown_mcp_servers
 
         _servers.clear()
         mock_server = MagicMock()
@@ -725,9 +722,10 @@ class TestShutdown:
 
     def test_shutdown_is_parallel(self):
         """Multiple servers are shut down in parallel via asyncio.gather."""
-        import tools.mcp_tool as mcp_mod
-        from tools.mcp_tool import shutdown_mcp_servers, _servers
         import time
+
+        import tools.mcp_tool as mcp_mod
+        from tools.mcp_tool import _servers, shutdown_mcp_servers
 
         _servers.clear()
 
@@ -1049,7 +1047,7 @@ class TestConfigurableTimeouts:
 
     def test_default_timeout(self):
         """Server with no timeout config gets _DEFAULT_TOOL_TIMEOUT."""
-        from tools.mcp_tool import MCPServerTask, _DEFAULT_TOOL_TIMEOUT
+        from tools.mcp_tool import _DEFAULT_TOOL_TIMEOUT, MCPServerTask
 
         server = MCPServerTask("test_srv")
         assert server.tool_timeout == _DEFAULT_TOOL_TIMEOUT
@@ -1089,7 +1087,7 @@ class TestConfigurableTimeouts:
 
     def test_timeout_passed_to_handler(self):
         """The tool handler uses the server's configured timeout."""
-        from tools.mcp_tool import _make_tool_handler, _servers, MCPServerTask
+        from tools.mcp_tool import _make_tool_handler, _servers
 
         mock_session = MagicMock()
         mock_session.call_tool = AsyncMock(
@@ -1444,8 +1442,8 @@ class TestUtilityToolRegistration:
 
     def test_utility_tools_registered(self):
         """_discover_and_register_server registers all 4 utility tools."""
+        from tools.mcp_tool import MCPServerTask, _discover_and_register_server, _servers
         from tools.registry import ToolRegistry
-        from tools.mcp_tool import _discover_and_register_server, _servers, MCPServerTask
 
         mock_registry = ToolRegistry()
         mock_tools = [_make_mcp_tool("read_file", "Read a file")]
@@ -1480,8 +1478,8 @@ class TestUtilityToolRegistration:
 
     def test_utility_tools_in_same_toolset(self):
         """Utility tools belong to the same mcp-{server} toolset."""
+        from tools.mcp_tool import MCPServerTask, _discover_and_register_server, _servers
         from tools.registry import ToolRegistry
-        from tools.mcp_tool import _discover_and_register_server, _servers, MCPServerTask
 
         mock_registry = ToolRegistry()
         mock_session = MagicMock()
@@ -1509,8 +1507,8 @@ class TestUtilityToolRegistration:
 
     def test_utility_tools_have_check_fn(self):
         """Utility tools have a working check_fn."""
+        from tools.mcp_tool import MCPServerTask, _discover_and_register_server, _servers
         from tools.registry import ToolRegistry
-        from tools.mcp_tool import _discover_and_register_server, _servers, MCPServerTask
 
         mock_registry = ToolRegistry()
         mock_session = MagicMock()
@@ -1543,7 +1541,6 @@ class TestUtilityToolRegistration:
 # SamplingHandler tests
 # ===========================================================================
 
-import math
 import time
 
 from mcp.types import (
@@ -1557,7 +1554,6 @@ from mcp.types import (
 )
 
 from tools.mcp_tool import SamplingHandler, _safe_numeric
-
 
 # ---------------------------------------------------------------------------
 # Helpers for sampling tests
@@ -2349,7 +2345,7 @@ class TestSessionKwargs:
 class TestMCPServerTaskSamplingIntegration:
     def test_sampling_handler_created_when_enabled(self):
         """MCPServerTask.run() creates a SamplingHandler when sampling is enabled."""
-        from tools.mcp_tool import MCPServerTask, _MCP_SAMPLING_TYPES
+        from tools.mcp_tool import _MCP_SAMPLING_TYPES, MCPServerTask
 
         server = MCPServerTask("int_test")
         config = {
@@ -2373,7 +2369,7 @@ class TestMCPServerTaskSamplingIntegration:
 
     def test_sampling_handler_none_when_disabled(self):
         """MCPServerTask._sampling is None when sampling is disabled."""
-        from tools.mcp_tool import MCPServerTask, _MCP_SAMPLING_TYPES
+        from tools.mcp_tool import _MCP_SAMPLING_TYPES, MCPServerTask
 
         server = MCPServerTask("int_test2")
         config = {
@@ -2409,7 +2405,7 @@ class TestDiscoveryFailedCount:
 
     def test_failed_server_increments_failed_count(self):
         """When _discover_and_register_server raises, failed_count increments."""
-        from tools.mcp_tool import discover_mcp_tools, _servers, _ensure_mcp_loop
+        from tools.mcp_tool import _ensure_mcp_loop, _servers, discover_mcp_tools
 
         fake_config = {
             "good_server": {"command": "npx", "args": ["good"]},
@@ -2453,7 +2449,7 @@ class TestDiscoveryFailedCount:
 
     def test_all_servers_fail_still_prints_summary(self):
         """When all servers fail, a summary with failure count is still printed."""
-        from tools.mcp_tool import discover_mcp_tools, _servers, _ensure_mcp_loop
+        from tools.mcp_tool import _ensure_mcp_loop, _servers, discover_mcp_tools
 
         fake_config = {
             "srv1": {"command": "npx", "args": ["a"]},
@@ -2483,7 +2479,7 @@ class TestDiscoveryFailedCount:
 
     def test_ok_servers_excludes_failures(self):
         """ok_servers count correctly excludes failed servers."""
-        from tools.mcp_tool import discover_mcp_tools, _servers, _ensure_mcp_loop
+        from tools.mcp_tool import _ensure_mcp_loop, _servers, discover_mcp_tools
 
         fake_config = {
             "ok1": {"command": "npx", "args": ["ok1"]},
@@ -2536,8 +2532,8 @@ class TestMCPSelectiveToolLoading:
         return server
 
     def _run_discover(self, name, tool_names, config, session=None):
-        from tools.registry import ToolRegistry
         from tools.mcp_tool import _discover_and_register_server, _servers
+        from tools.registry import ToolRegistry
 
         mock_registry = ToolRegistry()
         server = self._make_server(name, tool_names, session=session)
@@ -2656,7 +2652,7 @@ class TestMCPSelectiveToolLoading:
         assert "mcp_ink_resources_only_get_prompt" not in registered
 
     def test_existing_tool_names_reflect_registered_subset(self):
-        from tools.mcp_tool import _existing_tool_names, _servers, _discover_and_register_server
+        from tools.mcp_tool import _discover_and_register_server, _existing_tool_names, _servers
         from tools.registry import ToolRegistry
 
         mock_registry = ToolRegistry()
@@ -2688,8 +2684,8 @@ class TestMCPSelectiveToolLoading:
             _servers.pop("ink_existing", None)
 
     def test_no_toolset_created_when_everything_is_filtered_out(self):
-        from tools.registry import ToolRegistry
         from tools.mcp_tool import _discover_and_register_server, _servers
+        from tools.registry import ToolRegistry
 
         mock_registry = ToolRegistry()
         server = self._make_server("ink_none", ["create_service"], session=SimpleNamespace())
@@ -2761,12 +2757,14 @@ class TestRegistryCollisionWarning:
 
     def test_overwrite_different_toolset_logs_warning(self, caplog):
         """Overwriting a tool from a different toolset emits a warning."""
-        from tools.registry import ToolRegistry
         import logging
+
+        from tools.registry import ToolRegistry
 
         reg = ToolRegistry()
         schema = {"name": "my_tool", "description": "test", "parameters": {"type": "object", "properties": {}}}
-        handler = lambda args, **kw: "{}"
+        def handler(args, **kw):
+            return "{}"
 
         reg.register(name="my_tool", toolset="builtin", schema=schema, handler=handler)
 
@@ -2778,12 +2776,14 @@ class TestRegistryCollisionWarning:
 
     def test_overwrite_same_toolset_no_warning(self, caplog):
         """Re-registering within the same toolset is silent (e.g. reconnect)."""
-        from tools.registry import ToolRegistry
         import logging
+
+        from tools.registry import ToolRegistry
 
         reg = ToolRegistry()
         schema = {"name": "my_tool", "description": "test", "parameters": {"type": "object", "properties": {}}}
-        handler = lambda args, **kw: "{}"
+        def handler(args, **kw):
+            return "{}"
 
         reg.register(name="my_tool", toolset="mcp-server", schema=schema, handler=handler)
 
@@ -2798,8 +2798,8 @@ class TestMCPBuiltinCollisionGuard:
 
     def test_mcp_tool_skipped_when_builtin_exists(self):
         """An MCP tool whose prefixed name collides with a built-in is skipped."""
+        from tools.mcp_tool import MCPServerTask, _discover_and_register_server, _servers
         from tools.registry import ToolRegistry
-        from tools.mcp_tool import _discover_and_register_server, _servers, MCPServerTask
 
         mock_registry = ToolRegistry()
 
@@ -2838,8 +2838,8 @@ class TestMCPBuiltinCollisionGuard:
 
     def test_mcp_tool_registered_when_no_builtin_collision(self):
         """MCP tools register normally when there's no collision."""
+        from tools.mcp_tool import MCPServerTask, _discover_and_register_server, _servers
         from tools.registry import ToolRegistry
-        from tools.mcp_tool import _discover_and_register_server, _servers, MCPServerTask
 
         mock_registry = ToolRegistry()
         mock_tools = [_make_mcp_tool("web_search", "Search the web")]
@@ -2864,8 +2864,8 @@ class TestMCPBuiltinCollisionGuard:
 
     def test_mcp_tool_allowed_when_collision_is_another_mcp(self):
         """Collision between two MCP toolsets is allowed (last wins)."""
+        from tools.mcp_tool import MCPServerTask, _discover_and_register_server, _servers
         from tools.registry import ToolRegistry
-        from tools.mcp_tool import _discover_and_register_server, _servers, MCPServerTask
 
         mock_registry = ToolRegistry()
 
@@ -2992,7 +2992,7 @@ class TestRegisterMcpServers:
         assert result == []
 
     def test_skips_already_connected_servers(self):
-        from tools.mcp_tool import register_mcp_servers, _servers
+        from tools.mcp_tool import _servers, register_mcp_servers
 
         mock_server = _make_mock_server("existing")
         _servers["existing"] = mock_server
@@ -3006,7 +3006,7 @@ class TestRegisterMcpServers:
             _servers.pop("existing", None)
 
     def test_skips_disabled_servers(self):
-        from tools.mcp_tool import register_mcp_servers, _servers
+        from tools.mcp_tool import _servers, register_mcp_servers
 
         try:
             with patch("tools.mcp_tool._MCP_AVAILABLE", True), \
@@ -3017,7 +3017,7 @@ class TestRegisterMcpServers:
             _servers.pop("srv", None)
 
     def test_connects_new_servers(self):
-        from tools.mcp_tool import register_mcp_servers, _servers, _ensure_mcp_loop
+        from tools.mcp_tool import _ensure_mcp_loop, _servers, register_mcp_servers
 
         fake_config = {"my_server": {"command": "npx", "args": ["test"]}}
 
@@ -3037,7 +3037,7 @@ class TestRegisterMcpServers:
         _servers.pop("my_server", None)
 
     def test_logs_summary_on_success(self):
-        from tools.mcp_tool import register_mcp_servers, _servers, _ensure_mcp_loop
+        from tools.mcp_tool import _ensure_mcp_loop, _servers, register_mcp_servers
 
         fake_config = {"srv": {"command": "npx", "args": ["test"]}}
 

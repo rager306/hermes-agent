@@ -2,24 +2,24 @@
 
 import os
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 import yaml
 
 from hermes_cli.config import (
     DEFAULT_CONFIG,
-    get_hermes_home,
+    _sanitize_env_lines,
     ensure_hermes_home,
     get_compatible_custom_providers,
+    get_hermes_home,
     load_config,
     load_env,
     migrate_config,
     remove_env_value,
+    sanitize_env_file,
     save_config,
     save_env_value,
     save_env_value_secure,
-    sanitize_env_file,
-    _sanitize_env_lines,
 )
 
 

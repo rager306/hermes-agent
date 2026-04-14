@@ -1,18 +1,15 @@
 """Tests for tools/session_search_tool.py — helper functions and search dispatcher."""
 
 import json
-import time
-import pytest
 
 from tools.session_search_tool import (
-    _format_timestamp,
-    _format_conversation,
-    _truncate_around_matches,
     _HIDDEN_SESSION_SOURCES,
     MAX_SESSION_CHARS,
     SESSION_SEARCH_SCHEMA,
+    _format_conversation,
+    _format_timestamp,
+    _truncate_around_matches,
 )
-
 
 # =========================================================================
 # Tool schema guidance
@@ -207,6 +204,7 @@ class TestSessionSearch:
     def test_current_session_excluded(self):
         """session_search should never return the current session."""
         from unittest.mock import MagicMock
+
         from tools.session_search_tool import session_search
 
         mock_db = MagicMock()
@@ -229,6 +227,7 @@ class TestSessionSearch:
     def test_current_session_excluded_keeps_others(self):
         """Other sessions should still be returned when current is excluded."""
         from unittest.mock import MagicMock
+
         from tools.session_search_tool import session_search
 
         mock_db = MagicMock()
@@ -248,7 +247,8 @@ class TestSessionSearch:
         ]
 
         # Mock async_call_llm to raise RuntimeError → summarizer returns None
-        from unittest.mock import AsyncMock, patch as _patch
+        from unittest.mock import AsyncMock
+        from unittest.mock import patch as _patch
         with _patch("tools.session_search_tool.async_call_llm",
                      new_callable=AsyncMock,
                      side_effect=RuntimeError("no provider")):
@@ -264,6 +264,7 @@ class TestSessionSearch:
     def test_current_child_session_excludes_parent_lineage(self):
         """Compression/delegation parents should be excluded for the active child session."""
         from unittest.mock import MagicMock
+
         from tools.session_search_tool import session_search
 
         mock_db = MagicMock()
@@ -293,6 +294,7 @@ class TestSessionSearch:
     def test_current_root_session_excludes_child_lineage(self):
         """Delegation child hits should be excluded when they resolve to the current root session."""
         from unittest.mock import MagicMock
+
         from tools.session_search_tool import session_search
 
         mock_db = MagicMock()

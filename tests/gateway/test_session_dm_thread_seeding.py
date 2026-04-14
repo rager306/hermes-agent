@@ -14,11 +14,12 @@ Covers:
 - Cross-platform: consistent behavior for Slack, Telegram, Discord
 """
 
-import pytest
 from unittest.mock import patch
 
-from gateway.config import Platform, GatewayConfig
-from gateway.session import SessionSource, SessionStore, build_session_key
+import pytest
+
+from gateway.config import GatewayConfig, Platform
+from gateway.session import SessionSource, SessionStore
 
 
 @pytest.fixture()

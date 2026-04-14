@@ -9,13 +9,11 @@ Verifies that:
 
 import json
 import os
-import sqlite3
 import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 
 # ---------------------------------------------------------------------------
 # Test: _flush_messages_to_session_db only writes new messages
@@ -51,10 +49,7 @@ class TestFlushDeduplication:
             conversation_history = [
                 {"role": "user", "content": "old message"},
             ]
-            messages = list(conversation_history) + [
-                {"role": "user", "content": "new question"},
-                {"role": "assistant", "content": "new answer"},
-            ]
+            messages = [*list(conversation_history), {"role": "user", "content": "new question"}, {"role": "assistant", "content": "new answer"}]
 
             # First flush — should write 2 new messages
             agent._flush_messages_to_session_db(messages, conversation_history)
@@ -110,12 +105,7 @@ class TestFlushDeduplication:
             agent._save_session_log = MagicMock()
 
             conversation_history = [{"role": "user", "content": "old"}]
-            messages = list(conversation_history) + [
-                {"role": "user", "content": "q1"},
-                {"role": "assistant", "content": "a1"},
-                {"role": "user", "content": "q2"},
-                {"role": "assistant", "content": "a2"},
-            ]
+            messages = [*list(conversation_history), {"role": "user", "content": "q1"}, {"role": "assistant", "content": "a1"}, {"role": "user", "content": "q2"}, {"role": "assistant", "content": "a2"}]
 
             # Simulate multiple persist calls (like the agent's many exit paths)
             for _ in range(5):

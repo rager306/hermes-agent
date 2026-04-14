@@ -43,8 +43,8 @@ def _ensure_discord_mock():
 
 _ensure_discord_mock()
 
-import gateway.platforms.discord as discord_platform  # noqa: E402
-from gateway.platforms.discord import DiscordAdapter  # noqa: E402
+import gateway.platforms.discord as discord_platform
+from gateway.platforms.discord import DiscordAdapter
 
 
 class FakeTree:
@@ -149,7 +149,7 @@ async def test_connect_releases_token_lock_on_timeout(monkeypatch):
 
     async def fake_wait_for(awaitable, timeout):
         awaitable.close()
-        raise asyncio.TimeoutError()
+        raise TimeoutError()
 
     monkeypatch.setattr(discord_platform.asyncio, "wait_for", fake_wait_for)
 

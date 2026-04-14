@@ -7,12 +7,11 @@ Tests the new --gateway mode for hermes update, including:
 - _restore_stashed_changes() with input_fn parameter
 """
 
+import asyncio
 import json
 import os
 import time
-import asyncio
-from pathlib import Path
-from unittest.mock import patch, MagicMock, AsyncMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -496,7 +495,7 @@ class TestUpdatePromptInterception:
         hermes_home = tmp_path / "hermes"
         hermes_home.mkdir()
 
-        event = _make_event(text="hello", chat_id="67890")
+        _make_event(text="hello", chat_id="67890")
 
         # No pending prompt
         runner._is_user_authorized = MagicMock(return_value=True)

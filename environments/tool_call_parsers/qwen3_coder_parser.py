@@ -19,7 +19,7 @@ import ast
 import json
 import re
 import uuid
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from openai.types.chat.chat_completion_message_tool_call import (
     ChatCompletionMessageToolCall,
@@ -83,7 +83,7 @@ class Qwen3CoderToolCallParser(ToolCallParser):
         re.DOTALL,
     )
 
-    def _parse_function_call(self, function_str: str) -> Optional[ChatCompletionMessageToolCall]:
+    def _parse_function_call(self, function_str: str) -> ChatCompletionMessageToolCall | None:
         """Parse a single <function=name>...</function> block into a ToolCall."""
         try:
             # Extract function name: everything before the first '>'
@@ -92,7 +92,7 @@ class Qwen3CoderToolCallParser(ToolCallParser):
             params_str = function_str[gt_idx + 1:]
 
             # Extract parameters
-            param_dict: Dict[str, Any] = {}
+            param_dict: dict[str, Any] = {}
             for match_text in self.PARAMETER_REGEX.findall(params_str):
                 if ">" not in match_text:
                     continue
@@ -133,7 +133,7 @@ class Qwen3CoderToolCallParser(ToolCallParser):
                 raw_blocks = [text]
 
             # Find function blocks within each tool_call
-            function_strs: List[str] = []
+            function_strs: list[str] = []
             for block in raw_blocks:
                 func_matches = self.FUNCTION_REGEX.findall(block)
                 function_strs.extend(m[0] if m[0] else m[1] for m in func_matches)
@@ -142,7 +142,7 @@ class Qwen3CoderToolCallParser(ToolCallParser):
                 return text, None
 
             # Parse each function call
-            tool_calls: List[ChatCompletionMessageToolCall] = []
+            tool_calls: list[ChatCompletionMessageToolCall] = []
             for func_str in function_strs:
                 tc = self._parse_function_call(func_str)
                 if tc is not None:

@@ -451,7 +451,7 @@ def _collect_gateway_skill_entries(
     max_slots: int,
     reserved_names: set[str],
     desc_limit: int = 100,
-    sanitize_name: "Callable[[str], str] | None" = None,
+    sanitize_name: Callable[[str], str] | None = None,
 ) -> tuple[list[tuple[str, str, str]], int]:
     """Collect plugin + skill entries for a gateway platform.
 
@@ -887,7 +887,9 @@ class SlashCommandCompleter(Completer):
         # Config-based direct aliases (preferred — include provider info)
         try:
             from hermes_cli.model_switch import (
-                _ensure_direct_aliases, DIRECT_ALIASES, MODEL_ALIASES,
+                DIRECT_ALIASES,
+                MODEL_ALIASES,
+                _ensure_direct_aliases,
             )
             _ensure_direct_aliases()
             for name, da in DIRECT_ALIASES.items():
@@ -1028,7 +1030,7 @@ class SlashCommandAutoSuggest(AutoSuggest):
         # Static subcommands
         if self._completer is not None and not self._completer._command_allowed(base_cmd):
             return None
-        if base_cmd in SUBCOMMANDS and SUBCOMMANDS[base_cmd]:
+        if SUBCOMMANDS.get(base_cmd):
             if " " not in sub_text:
                 for sub in SUBCOMMANDS[base_cmd]:
                     if sub.startswith(sub_lower) and sub != sub_lower:

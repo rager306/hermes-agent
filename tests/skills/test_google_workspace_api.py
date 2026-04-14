@@ -2,16 +2,13 @@
 
 import importlib.util
 import json
-import os
 import subprocess
 import sys
-import types
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 
 BRIDGE_PATH = (
     Path(__file__).resolve().parents[2]
@@ -65,7 +62,7 @@ def _write_token(path: Path, *, token="ya29.test", expiry=None, **extra):
 
 def test_bridge_returns_valid_token(bridge_module, tmp_path):
     """Non-expired token is returned without refresh."""
-    future = (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat()
+    future = (datetime.now(UTC) + timedelta(hours=1)).isoformat()
     token_path = bridge_module.get_token_path()
     _write_token(token_path, token="ya29.valid", expiry=future)
 
@@ -75,7 +72,7 @@ def test_bridge_returns_valid_token(bridge_module, tmp_path):
 
 def test_bridge_refreshes_expired_token(bridge_module, tmp_path):
     """Expired token triggers a refresh via token_uri."""
-    past = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
+    past = (datetime.now(UTC) - timedelta(hours=1)).isoformat()
     token_path = bridge_module.get_token_path()
     _write_token(token_path, token="ya29.old", expiry=past)
 
@@ -104,7 +101,7 @@ def test_bridge_exits_on_missing_token(bridge_module):
 
 def test_bridge_main_injects_token_env(bridge_module, tmp_path):
     """main() sets GOOGLE_WORKSPACE_CLI_TOKEN in subprocess env."""
-    future = (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat()
+    future = (datetime.now(UTC) + timedelta(hours=1)).isoformat()
     token_path = bridge_module.get_token_path()
     _write_token(token_path, token="ya29.injected", expiry=future)
 

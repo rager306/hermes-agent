@@ -25,6 +25,7 @@ import json
 import os
 import subprocess
 import sys
+from datetime import UTC
 from pathlib import Path
 
 BRIDGE = Path(__file__).parent / "gws_bridge.py"
@@ -34,7 +35,7 @@ PYTHON = sys.executable
 def gws(*args: str) -> None:
     """Call gws via the bridge and exit with its return code."""
     result = subprocess.run(
-        [PYTHON, str(BRIDGE)] + list(args),
+        [PYTHON, str(BRIDGE), *list(args)],
         env={**os.environ, "HERMES_HOME": os.environ.get("HERMES_HOME", str(Path.home() / ".hermes"))},
     )
     sys.exit(result.returncode)
@@ -82,8 +83,8 @@ def gmail_modify(args):
 def calendar_list(args):
     if args.start or args.end:
         # Specific date range — use raw Calendar API for precise timeMin/timeMax
-        from datetime import datetime, timedelta, timezone as tz
-        now = datetime.now(tz.utc)
+        from datetime import datetime, timedelta
+        now = datetime.now(UTC)
         time_min = args.start or now.isoformat()
         time_max = args.end or (now + timedelta(days=7)).isoformat()
         gws(

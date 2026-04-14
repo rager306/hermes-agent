@@ -9,7 +9,6 @@ from unittest.mock import MagicMock
 
 from gateway.config import Platform, PlatformConfig
 
-
 # ---------------------------------------------------------------------------
 # Mock slack-bolt if not installed (same as test_slack.py)
 # ---------------------------------------------------------------------------
@@ -41,10 +40,10 @@ def _ensure_slack_mock():
 _ensure_slack_mock()
 
 import gateway.platforms.slack as _slack_mod
+
 _slack_mod.SLACK_AVAILABLE = True
 
-from gateway.platforms.slack import SlackAdapter  # noqa: E402
-
+from gateway.platforms.slack import SlackAdapter
 
 # ---------------------------------------------------------------------------
 # Helpers

@@ -5,12 +5,11 @@ Tests the multi-turn agent engine using mocked servers, without needing
 real API keys or running servers.
 """
 
-import asyncio
 import json
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
@@ -48,12 +47,12 @@ class MockToolCall:
 
 @dataclass
 class MockMessage:
-    content: Optional[str]
+    content: str | None
     role: str = "assistant"
-    tool_calls: Optional[List[MockToolCall]] = None
-    reasoning_content: Optional[str] = None
-    reasoning: Optional[str] = None
-    reasoning_details: Optional[list] = None
+    tool_calls: list[MockToolCall] | None = None
+    reasoning_content: str | None = None
+    reasoning: str | None = None
+    reasoning_details: list | None = None
 
 
 @dataclass
@@ -65,7 +64,7 @@ class MockChoice:
 
 @dataclass
 class MockChatCompletion:
-    choices: List[MockChoice]
+    choices: list[MockChoice]
     id: str = "chatcmpl-mock"
     model: str = "mock-model"
 
@@ -76,10 +75,10 @@ class MockServer:
     Mimics the chat_completion() interface.
     """
 
-    def __init__(self, responses: List[MockChatCompletion]):
+    def __init__(self, responses: list[MockChatCompletion]):
         self.responses = responses
         self.call_count = 0
-        self.call_history: List[Dict[str, Any]] = []
+        self.call_history: list[dict[str, Any]] = []
 
     async def chat_completion(self, **kwargs) -> MockChatCompletion:
         self.call_history.append(kwargs)

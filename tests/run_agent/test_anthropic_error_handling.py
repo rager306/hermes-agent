@@ -13,9 +13,7 @@ import asyncio
 import sys
 import types
 from types import SimpleNamespace
-from unittest.mock import MagicMock, AsyncMock
-
-import pytest
+from unittest.mock import AsyncMock, MagicMock
 
 sys.modules.setdefault("fire", types.SimpleNamespace(Fire=lambda *a, **k: None))
 sys.modules.setdefault("firecrawl", types.SimpleNamespace(Firecrawl=object))
@@ -25,7 +23,6 @@ import gateway.run as gateway_run
 import run_agent
 from gateway.config import Platform
 from gateway.session import SessionSource
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -442,7 +439,7 @@ def test_prompt_too_long_triggers_compression(monkeypatch):
             type(self).compress_called += 1
             # Simulate compression by dropping oldest non-system message
             if len(messages) > 2:
-                compressed = [messages[0]] + messages[2:]
+                compressed = [messages[0], *messages[2:]]
             else:
                 compressed = messages
             return compressed, system_message

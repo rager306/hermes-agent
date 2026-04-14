@@ -6,9 +6,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from hermes_cli.auth import AuthError
 from hermes_cli import main as hermes_main
-
+from hermes_cli.auth import AuthError
 
 # ---------------------------------------------------------------------------
 # Module isolation: _import_cli() wipes tools.* / cli / run_agent from

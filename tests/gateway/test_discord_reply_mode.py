@@ -8,11 +8,11 @@ Covers the threading behavior control for multi-chunk replies:
 import os
 import sys
 from types import SimpleNamespace
-from unittest.mock import MagicMock, AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from gateway.config import PlatformConfig, GatewayConfig, Platform, _apply_env_overrides
+from gateway.config import GatewayConfig, Platform, PlatformConfig, _apply_env_overrides
 
 
 def _ensure_discord_mock():
@@ -50,7 +50,7 @@ def _ensure_discord_mock():
 
 _ensure_discord_mock()
 
-from gateway.platforms.discord import DiscordAdapter  # noqa: E402
+from gateway.platforms.discord import DiscordAdapter
 
 
 @pytest.fixture()
@@ -123,7 +123,7 @@ class TestSendWithReplyToMode:
 
     @pytest.mark.asyncio
     async def test_off_mode_no_reply_reference(self):
-        adapter, channel, ref_msg = _make_discord_adapter("off")
+        adapter, channel, _ref_msg = _make_discord_adapter("off")
         adapter.truncate_message = lambda content, max_len, **kw: ["chunk1", "chunk2", "chunk3"]
 
         await adapter.send("12345", "test content", reply_to="999")
@@ -164,7 +164,7 @@ class TestSendWithReplyToMode:
 
     @pytest.mark.asyncio
     async def test_no_reply_to_param_no_reference(self):
-        adapter, channel, ref_msg = _make_discord_adapter("all")
+        adapter, channel, _ref_msg = _make_discord_adapter("all")
         adapter.truncate_message = lambda content, max_len, **kw: ["chunk1", "chunk2"]
 
         await adapter.send("12345", "test content", reply_to=None)
@@ -186,7 +186,7 @@ class TestSendWithReplyToMode:
 
     @pytest.mark.asyncio
     async def test_single_chunk_off_mode(self):
-        adapter, channel, ref_msg = _make_discord_adapter("off")
+        adapter, channel, _ref_msg = _make_discord_adapter("off")
         adapter.truncate_message = lambda content, max_len, **kw: ["single chunk"]
 
         await adapter.send("12345", "test", reply_to="999")

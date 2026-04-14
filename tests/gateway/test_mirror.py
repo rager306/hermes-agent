@@ -1,14 +1,13 @@
 """Tests for gateway/mirror.py — session mirroring."""
 
 import json
-from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import gateway.mirror as mirror_mod
 from gateway.mirror import (
-    mirror_to_session,
-    _find_session_id,
     _append_to_jsonl,
+    _find_session_id,
+    mirror_to_session,
 )
 
 
@@ -78,7 +77,7 @@ class TestFindSessionId:
         assert result == "sess_topic_a"
 
     def test_no_match_returns_none(self, tmp_path):
-        sessions_dir, index_file = _setup_sessions(tmp_path, {
+        _sessions_dir, index_file = _setup_sessions(tmp_path, {
             "sess": {
                 "session_id": "sess_1",
                 "origin": {"platform": "discord", "chat_id": "999"},
@@ -98,7 +97,7 @@ class TestFindSessionId:
         assert result is None
 
     def test_platform_case_insensitive(self, tmp_path):
-        sessions_dir, index_file = _setup_sessions(tmp_path, {
+        _sessions_dir, index_file = _setup_sessions(tmp_path, {
             "s1": {
                 "session_id": "sess_1",
                 "origin": {"platform": "Telegram", "chat_id": "123"},

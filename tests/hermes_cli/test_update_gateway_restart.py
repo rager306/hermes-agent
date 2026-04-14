@@ -8,13 +8,12 @@ when launchd will auto-respawn.
 
 import subprocess
 from types import SimpleNamespace
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 import pytest
 
 import hermes_cli.gateway as gateway_cli
 from hermes_cli.main import cmd_update
-
 
 # ---------------------------------------------------------------------------
 # Helpers

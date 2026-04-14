@@ -17,11 +17,11 @@ import sys
 import tempfile
 import time
 import zipfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from hermes_constants import get_default_hermes_root, get_hermes_home, display_hermes_home
+from hermes_constants import display_hermes_home, get_default_hermes_root, get_hermes_home
 
 logger = logging.getLogger(__name__)
 
@@ -221,7 +221,7 @@ def run_backup(args) -> None:
     print(f"  Time:        {elapsed:.1f}s")
 
     if skipped_dirs:
-        print(f"\n  Excluded directories:")
+        print("\n  Excluded directories:")
         for d in sorted(skipped_dirs):
             print(f"    {d}/")
 
@@ -397,8 +397,10 @@ def run_import(args) -> None:
         if profiles_dir.is_dir():
             try:
                 from hermes_cli.profiles import (
-                    create_wrapper_script, check_alias_collision,
-                    _is_wrapper_dir_in_path, _get_wrapper_dir,
+                    _get_wrapper_dir,
+                    _is_wrapper_dir_in_path,
+                    check_alias_collision,
+                    create_wrapper_script,
                 )
                 for entry in sorted(profiles_dir.iterdir()):
                     if not entry.is_dir():
@@ -429,8 +431,8 @@ def run_import(args) -> None:
             except ImportError:
                 # hermes_cli.profiles might not be available (fresh install)
                 if any(profiles_dir.iterdir()):
-                    print(f"\n  Profiles detected but aliases could not be created.")
-                    print(f"  Run: hermes profile list  (after installing hermes)")
+                    print("\n  Profiles detected but aliases could not be created.")
+                    print("  Run: hermes profile list  (after installing hermes)")
 
         # Guidance
         print()
@@ -469,15 +471,15 @@ _QUICK_SNAPSHOTS_DIR = "state-snapshots"
 _QUICK_DEFAULT_KEEP = 20
 
 
-def _quick_snapshot_root(hermes_home: Optional[Path] = None) -> Path:
+def _quick_snapshot_root(hermes_home: Path | None = None) -> Path:
     home = hermes_home or get_hermes_home()
     return home / _QUICK_SNAPSHOTS_DIR
 
 
 def create_quick_snapshot(
-    label: Optional[str] = None,
-    hermes_home: Optional[Path] = None,
-) -> Optional[str]:
+    label: str | None = None,
+    hermes_home: Path | None = None,
+) -> str | None:
     """Create a quick state snapshot of critical files.
 
     Copies STATE_FILES to a timestamped directory under state-snapshots/.
@@ -489,12 +491,12 @@ def create_quick_snapshot(
     home = hermes_home or get_hermes_home()
     root = _quick_snapshot_root(home)
 
-    ts = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+    ts = datetime.now(UTC).strftime("%Y%m%d-%H%M%S")
     snap_id = f"{ts}-{label}" if label else ts
     snap_dir = root / snap_id
     snap_dir.mkdir(parents=True, exist_ok=True)
 
-    manifest: Dict[str, int] = {}  # rel_path -> file size
+    manifest: dict[str, int] = {}  # rel_path -> file size
 
     for rel in _QUICK_STATE_FILES:
         src = home / rel
@@ -539,8 +541,8 @@ def create_quick_snapshot(
 
 def list_quick_snapshots(
     limit: int = 20,
-    hermes_home: Optional[Path] = None,
-) -> List[Dict[str, Any]]:
+    hermes_home: Path | None = None,
+) -> list[dict[str, Any]]:
     """List existing quick state snapshots, most recent first."""
     root = _quick_snapshot_root(hermes_home)
     if not root.exists():
@@ -565,7 +567,7 @@ def list_quick_snapshots(
 
 def restore_quick_snapshot(
     snapshot_id: str,
-    hermes_home: Optional[Path] = None,
+    hermes_home: Path | None = None,
 ) -> bool:
     """Restore state from a quick snapshot.
 
@@ -636,7 +638,7 @@ def _prune_quick_snapshots(root: Path, keep: int = _QUICK_DEFAULT_KEEP) -> int:
 
 def prune_quick_snapshots(
     keep: int = _QUICK_DEFAULT_KEEP,
-    hermes_home: Optional[Path] = None,
+    hermes_home: Path | None = None,
 ) -> int:
     """Manually prune quick snapshots. Returns count deleted."""
     return _prune_quick_snapshots(_quick_snapshot_root(hermes_home), keep=keep)

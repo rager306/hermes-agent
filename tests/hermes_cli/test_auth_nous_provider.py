@@ -1,15 +1,13 @@
 """Regression tests for Nous OAuth refresh + agent-key mint interactions."""
 
 import json
-import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import httpx
 import pytest
 
 from hermes_cli.auth import AuthError, get_provider_auth_state, resolve_nous_runtime_credentials
-
 
 # =============================================================================
 # _resolve_verify: CA bundle path validation
@@ -123,7 +121,7 @@ def _mint_payload(api_key: str = "agent-key") -> dict:
     return {
         "api_key": api_key,
         "key_id": "key-id-1",
-        "expires_at": datetime.now(timezone.utc).isoformat(),
+        "expires_at": datetime.now(UTC).isoformat(),
         "expires_in": 1800,
         "reused": False,
     }

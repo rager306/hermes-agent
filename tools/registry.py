@@ -16,7 +16,7 @@ Import chain (circular-import safe):
 
 import json
 import logging
-from typing import Callable, Dict, List, Optional, Set
+from collections.abc import Callable
 
 logger = logging.getLogger(__name__)
 
@@ -25,9 +25,16 @@ class ToolEntry:
     """Metadata for a single registered tool."""
 
     __slots__ = (
-        "name", "toolset", "schema", "handler", "check_fn",
-        "requires_env", "is_async", "description", "emoji",
+        "check_fn",
+        "description",
+        "emoji",
+        "handler",
+        "is_async",
         "max_result_size_chars",
+        "name",
+        "requires_env",
+        "schema",
+        "toolset",
     )
 
     def __init__(self, name, toolset, schema, handler, check_fn,
@@ -49,8 +56,8 @@ class ToolRegistry:
     """Singleton registry that collects tool schemas + handlers from tool files."""
 
     def __init__(self):
-        self._tools: Dict[str, ToolEntry] = {}
-        self._toolset_checks: Dict[str, Callable] = {}
+        self._tools: dict[str, ToolEntry] = {}
+        self._toolset_checks: dict[str, Callable] = {}
 
     # ------------------------------------------------------------------
     # Registration
@@ -62,8 +69,8 @@ class ToolRegistry:
         toolset: str,
         schema: dict,
         handler: Callable,
-        check_fn: Callable = None,
-        requires_env: list = None,
+        check_fn: Callable | None = None,
+        requires_env: list | None = None,
         is_async: bool = False,
         description: str = "",
         emoji: str = "",
@@ -113,14 +120,14 @@ class ToolRegistry:
     # Schema retrieval
     # ------------------------------------------------------------------
 
-    def get_definitions(self, tool_names: Set[str], quiet: bool = False) -> List[dict]:
+    def get_definitions(self, tool_names: set[str], quiet: bool = False) -> list[dict]:
         """Return OpenAI-format tool schemas for the requested tool names.
 
         Only tools whose ``check_fn()`` returns True (or have no check_fn)
         are included.
         """
         result = []
-        check_results: Dict[Callable, bool] = {}
+        check_results: dict[Callable, bool] = {}
         for name in sorted(tool_names):
             entry = self._tools.get(name)
             if not entry:
@@ -179,11 +186,11 @@ class ToolRegistry:
         from tools.budget_config import DEFAULT_RESULT_SIZE_CHARS
         return DEFAULT_RESULT_SIZE_CHARS
 
-    def get_all_tool_names(self) -> List[str]:
+    def get_all_tool_names(self) -> list[str]:
         """Return sorted list of all registered tool names."""
         return sorted(self._tools.keys())
 
-    def get_schema(self, name: str) -> Optional[dict]:
+    def get_schema(self, name: str) -> dict | None:
         """Return a tool's raw schema dict, bypassing check_fn filtering.
 
         Useful for token estimation and introspection where availability
@@ -192,7 +199,7 @@ class ToolRegistry:
         entry = self._tools.get(name)
         return entry.schema if entry else None
 
-    def get_toolset_for_tool(self, name: str) -> Optional[str]:
+    def get_toolset_for_tool(self, name: str) -> str | None:
         """Return the toolset a tool belongs to, or None."""
         entry = self._tools.get(name)
         return entry.toolset if entry else None
@@ -202,7 +209,7 @@ class ToolRegistry:
         entry = self._tools.get(name)
         return (entry.emoji if entry and entry.emoji else default)
 
-    def get_tool_to_toolset_map(self) -> Dict[str, str]:
+    def get_tool_to_toolset_map(self) -> dict[str, str]:
         """Return ``{tool_name: toolset_name}`` for every registered tool."""
         return {name: e.toolset for name, e in self._tools.items()}
 
@@ -221,14 +228,14 @@ class ToolRegistry:
             logger.debug("Toolset %s check raised; marking unavailable", toolset)
             return False
 
-    def check_toolset_requirements(self) -> Dict[str, bool]:
+    def check_toolset_requirements(self) -> dict[str, bool]:
         """Return ``{toolset: available_bool}`` for every toolset."""
-        toolsets = set(e.toolset for e in self._tools.values())
+        toolsets = {e.toolset for e in self._tools.values()}
         return {ts: self.is_toolset_available(ts) for ts in sorted(toolsets)}
 
-    def get_available_toolsets(self) -> Dict[str, dict]:
+    def get_available_toolsets(self) -> dict[str, dict]:
         """Return toolset metadata for UI display."""
-        toolsets: Dict[str, dict] = {}
+        toolsets: dict[str, dict] = {}
         for entry in self._tools.values():
             ts = entry.toolset
             if ts not in toolsets:
@@ -245,9 +252,9 @@ class ToolRegistry:
                         toolsets[ts]["requirements"].append(env)
         return toolsets
 
-    def get_toolset_requirements(self) -> Dict[str, dict]:
+    def get_toolset_requirements(self) -> dict[str, dict]:
         """Build a TOOLSET_REQUIREMENTS-compatible dict for backward compat."""
-        result: Dict[str, dict] = {}
+        result: dict[str, dict] = {}
         for entry in self._tools.values():
             ts = entry.toolset
             if ts not in result:

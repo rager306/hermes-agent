@@ -33,16 +33,13 @@ import os
 import sys
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
 
 # Ensure repo root is on sys.path for imports
 _repo_root = Path(__file__).resolve().parent.parent.parent
 if str(_repo_root) not in sys.path:
     sys.path.insert(0, str(_repo_root))
 
-from atroposlib.envs.base import ScoredDataGroup
 from atroposlib.envs.server_handling.server_manager import APIServerConfig
-from atroposlib.type_definitions import Item
 
 from environments.agent_loop import AgentResult
 from environments.hermes_base_env import HermesAgentBaseEnv, HermesAgentEnvConfig
@@ -107,7 +104,7 @@ class TerminalTestEnv(HermesAgentBaseEnv):
     env_config_cls = TerminalTestEnvConfig
 
     @classmethod
-    def config_init(cls) -> Tuple[TerminalTestEnvConfig, List[APIServerConfig]]:
+    def config_init(cls) -> tuple[TerminalTestEnvConfig, list[APIServerConfig]]:
         """
         Default configuration for the terminal test environment.
 
@@ -162,20 +159,20 @@ class TerminalTestEnv(HermesAgentBaseEnv):
         self.eval_tasks = list(EVAL_TASKS)
         self.iter = 0
         # Track reward stats for wandb logging
-        self.reward_buffer: List[float] = []
+        self.reward_buffer: list[float] = []
 
-    async def get_next_item(self) -> Dict[str, str]:
+    async def get_next_item(self) -> dict[str, str]:
         """Cycle through training tasks."""
         item = self.train_tasks[self.iter % len(self.train_tasks)]
         self.iter += 1
         return item
 
-    def format_prompt(self, item: Dict[str, str]) -> str:
+    def format_prompt(self, item: dict[str, str]) -> str:
         """The prompt is directly in the task item."""
         return item["prompt"]
 
     async def compute_reward(
-        self, item: Dict[str, str], result: AgentResult, ctx: ToolContext
+        self, item: dict[str, str], result: AgentResult, ctx: ToolContext
     ) -> float:
         """
         Verify by cat-ing the expected file path and checking content matches.
@@ -215,7 +212,6 @@ class TerminalTestEnv(HermesAgentBaseEnv):
         Logs accuracy metrics.
         """
         start_time = time.time()
-        correct = 0
         total = len(self.eval_tasks)
         samples = []
 
@@ -269,7 +265,7 @@ class TerminalTestEnv(HermesAgentBaseEnv):
             end_time=end_time,
         )
 
-    async def wandb_log(self, wandb_metrics: Optional[Dict] = None):
+    async def wandb_log(self, wandb_metrics: dict | None = None):
         """Log training metrics including reward stats and accuracy."""
         if wandb_metrics is None:
             wandb_metrics = {}

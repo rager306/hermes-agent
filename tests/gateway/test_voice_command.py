@@ -7,9 +7,10 @@ import queue
 import sys
 import threading
 import time
-import pytest
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 
 def _ensure_discord_mock():
@@ -52,7 +53,6 @@ def _ensure_discord_mock():
 _ensure_discord_mock()
 
 from gateway.platforms.base import MessageEvent, MessageType, SessionSource
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -408,8 +408,8 @@ class TestDiscordPlayTtsSkip:
     """Discord adapter skips play_tts when bot is in a voice channel."""
 
     def _make_discord_adapter(self):
-        from gateway.platforms.discord import DiscordAdapter
         from gateway.config import Platform, PlatformConfig
+        from gateway.platforms.discord import DiscordAdapter
         config = PlatformConfig(enabled=True, extra={})
         config.token = "fake-token"
         adapter = object.__new__(DiscordAdapter)
@@ -801,7 +801,6 @@ class TestVoiceChannelCommands:
     @pytest.mark.asyncio
     async def test_input_no_adapter(self, runner):
         """No Discord adapter — early return, no crash."""
-        from gateway.config import Platform
         # No adapters set
         await runner._handle_voice_channel_input(111, 42, "Hello")
 
@@ -922,8 +921,8 @@ class TestDiscordVoiceChannelMethods:
     """Test DiscordAdapter voice channel methods (join, leave, play, etc.)."""
 
     def _make_adapter(self):
-        from gateway.platforms.discord import DiscordAdapter
         from gateway.config import Platform, PlatformConfig
+        from gateway.platforms.discord import DiscordAdapter
         config = PlatformConfig(enabled=True, extra={})
         config.token = "fake-token"
         adapter = object.__new__(DiscordAdapter)
@@ -1136,7 +1135,10 @@ class TestVoiceReceiverThreadSafety:
 
     def test_check_silence_holds_lock(self):
         """check_silence must hold lock while iterating buffers."""
-        import ast, inspect, textwrap
+        import ast
+        import inspect
+        import textwrap
+
         from gateway.platforms.discord import VoiceReceiver
         source = textwrap.dedent(inspect.getsource(VoiceReceiver.check_silence))
         tree = ast.parse(source)
@@ -1157,7 +1159,10 @@ class TestVoiceReceiverThreadSafety:
 
     def test_on_packet_buffer_write_holds_lock(self):
         """_on_packet must hold lock when writing to buffers."""
-        import ast, inspect, textwrap
+        import ast
+        import inspect
+        import textwrap
+
         from gateway.platforms.discord import VoiceReceiver
         source = textwrap.dedent(inspect.getsource(VoiceReceiver._on_packet))
         tree = ast.parse(source)
@@ -1210,7 +1215,8 @@ class TestCallbackWiringOrder:
 
     def test_callback_set_before_join(self):
         """_handle_voice_channel_join wires callback before calling join."""
-        import ast, inspect
+        import inspect
+
         from gateway.run import GatewayRunner
         source = inspect.getsource(GatewayRunner._handle_voice_channel_join)
         lines = source.split("\n")
@@ -1338,14 +1344,15 @@ class TestAutoTtsEmptyTextGuard:
         """Code-only response results in empty speech text."""
         import re
         text_content = "```python\nprint(1)\n```"
-        speech_text = re.sub(r'[*_`#\[\]()]', '', text_content)[:4000].strip()
+        re.sub(r'[*_`#\[\]()]', '', text_content)[:4000].strip()
         # Note: base.py regex only strips individual chars, not full code blocks
         # So code blocks are partially stripped but may leave content
         # The real fix is in base.py — empty check after strip
 
     def test_base_empty_check_in_source(self):
         """base.py must check speech_text is non-empty before calling TTS."""
-        import ast, inspect
+        import inspect
+
         from gateway.platforms.base import BasePlatformAdapter
         source = inspect.getsource(BasePlatformAdapter._process_message_background)
         assert "if not speech_text" in source or "not speech_text" in source, (
@@ -1660,6 +1667,7 @@ class TestPlayInVoiceChannelUsesRunningLoop:
     def test_source_uses_get_running_loop(self):
         """The method source code calls get_running_loop, not get_event_loop."""
         import inspect
+
         from gateway.platforms.discord import DiscordAdapter
         source = inspect.getsource(DiscordAdapter.play_in_voice_channel)
         assert "get_running_loop" in source, \
@@ -1678,6 +1686,7 @@ class TestSendVoiceReplyFilename:
     def test_filename_uses_uuid(self):
         """The method uses uuid in the filename, not time-based."""
         import inspect
+
         from gateway.run import GatewayRunner
         source = inspect.getsource(GatewayRunner._send_voice_reply)
         assert "uuid" in source, \
@@ -1704,8 +1713,8 @@ class TestVoiceTimeoutCleansRunnerState:
 
     @staticmethod
     def _make_discord_adapter():
+        from gateway.config import Platform, PlatformConfig
         from gateway.platforms.discord import DiscordAdapter
-        from gateway.config import PlatformConfig, Platform
         config = PlatformConfig(enabled=True, extra={})
         config.token = "fake-token"
         adapter = object.__new__(DiscordAdapter)
@@ -1794,8 +1803,8 @@ class TestPlaybackTimeout:
 
     @staticmethod
     def _make_discord_adapter():
+        from gateway.config import Platform, PlatformConfig
         from gateway.platforms.discord import DiscordAdapter
-        from gateway.config import PlatformConfig, Platform
         config = PlatformConfig(enabled=True, extra={})
         config.token = "fake-token"
         adapter = object.__new__(DiscordAdapter)
@@ -1817,6 +1826,7 @@ class TestPlaybackTimeout:
     def test_source_has_wait_for_timeout(self):
         """The method uses asyncio.wait_for with timeout."""
         import inspect
+
         from gateway.platforms.discord import DiscordAdapter
         source = inspect.getsource(DiscordAdapter.play_in_voice_channel)
         assert "wait_for" in source, \
@@ -1895,7 +1905,10 @@ class TestSendVoiceReplyCleanup:
 
     def test_cleanup_in_finally(self):
         """The method has cleanup in a finally block, not inside try."""
-        import inspect, textwrap, ast
+        import ast
+        import inspect
+        import textwrap
+
         from gateway.run import GatewayRunner
         source = textwrap.dedent(inspect.getsource(GatewayRunner._send_voice_reply))
         tree = ast.parse(source)
@@ -1955,6 +1968,7 @@ class TestAutoTtsTempFileCleanup:
     def test_source_has_finally_remove(self):
         """play_tts call is wrapped in try/finally with os.remove."""
         import inspect
+
         from gateway.platforms.base import BasePlatformAdapter
         source = inspect.getsource(BasePlatformAdapter._process_message_background)
         # Find the play_tts section and verify cleanup
@@ -1977,8 +1991,8 @@ class TestVoiceChannelAwareness:
     """Tests for get_voice_channel_info() and get_voice_channel_context()."""
 
     def _make_adapter(self):
-        from gateway.platforms.discord import DiscordAdapter
         from gateway.config import PlatformConfig
+        from gateway.platforms.discord import DiscordAdapter
         config = PlatformConfig(enabled=True, extra={})
         config.token = "fake-token"
         adapter = object.__new__(DiscordAdapter)
@@ -2045,8 +2059,8 @@ class TestVoiceChannelAwareness:
         adapter._voice_receivers[111] = receiver
 
         info = adapter.get_voice_channel_info(111)
-        alice = [m for m in info["members"] if m["display_name"] == "Alice"][0]
-        bob = [m for m in info["members"] if m["display_name"] == "Bob"][0]
+        alice = next(m for m in info["members"] if m["display_name"] == "Alice")
+        bob = next(m for m in info["members"] if m["display_name"] == "Bob")
         assert alice["is_speaking"] is True
         assert bob["is_speaking"] is False
         assert info["speaking_count"] == 1
@@ -2080,7 +2094,6 @@ class TestDisconnectVoiceCleanup:
 
     @pytest.mark.asyncio
     async def test_disconnect_clears_voice_state(self):
-        from unittest.mock import AsyncMock
 
         adapter = MagicMock()
         adapter._voice_clients = {111: MagicMock(), 222: MagicMock()}
@@ -2445,8 +2458,8 @@ class TestVoiceTTSPlayback:
 
     @staticmethod
     def _make_discord_adapter():
+        from gateway.config import Platform, PlatformConfig
         from gateway.platforms.discord import DiscordAdapter
-        from gateway.config import PlatformConfig, Platform
         config = PlatformConfig(enabled=True, extra={})
         config.token = "fake-token"
         adapter = object.__new__(DiscordAdapter)
@@ -2501,7 +2514,7 @@ class TestVoiceTTSPlayback:
         from gateway.platforms.base import SendResult
         adapter.send_voice = AsyncMock(return_value=SendResult(success=True))
         # Different chat_id — shouldn't match VC
-        result = await adapter.play_tts(chat_id="999", audio_path="/tmp/tts.ogg")
+        await adapter.play_tts(chat_id="999", audio_path="/tmp/tts.ogg")
         adapter.send_voice.assert_called_once()
 
     # -- Runner dedup --
@@ -2516,8 +2529,8 @@ class TestVoiceTTSPlayback:
 
     def _call_should_reply(self, runner, voice_mode, msg_type, response="Hello",
                            agent_msgs=None, already_sent=False):
-        from gateway.platforms.base import MessageType, MessageEvent, SessionSource
         from gateway.config import Platform
+        from gateway.platforms.base import MessageEvent, SessionSource
         runner._voice_mode["ch1"] = voice_mode
         source = SessionSource(
             platform=Platform.DISCORD, chat_id="ch1",
@@ -2624,8 +2637,8 @@ class TestUDPKeepalive:
     @pytest.mark.asyncio
     async def test_keepalive_sends_silence_frame(self):
         """Listen loop sends silence frame via send_packet after interval."""
+        from gateway.config import Platform, PlatformConfig
         from gateway.platforms.discord import DiscordAdapter
-        from gateway.config import PlatformConfig, Platform
 
         config = PlatformConfig(enabled=True, extra={})
         config.token = "fake"

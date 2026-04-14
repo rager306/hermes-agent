@@ -24,9 +24,9 @@ import json
 import os
 import sys
 import time
-import urllib.request
 import urllib.error
-from typing import Any, Dict, List, Optional, Tuple
+import urllib.request
+from typing import Any
 
 RPC_URL = os.environ.get(
     "BASE_RPC_URL",
@@ -54,7 +54,7 @@ IFACE_ERC1155 = "d9b67a26"
 TRANSFER_TOPIC = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
 
 # Well-known Base tokens — maps lowercase address -> (symbol, name, decimals).
-KNOWN_TOKENS: Dict[str, Tuple[str, str, int]] = {
+KNOWN_TOKENS: dict[str, tuple[str, str, int]] = {
     "0x4200000000000000000000000000000000000006": ("WETH",   "Wrapped Ether",               18),
     "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913": ("USDC",   "USD Coin",                     6),
     "0x2ae3f1ec7f1f5012cfeab0185bfc7aa3cf0dec22": ("cbETH",  "Coinbase Wrapped Staked ETH", 18),
@@ -96,7 +96,7 @@ def _http_get_json(url: str, timeout: int = 10, retries: int = 2) -> Any:
     return None
 
 
-def _rpc_call(method: str, params: list = None, retries: int = 2) -> Any:
+def _rpc_call(method: str, params: list | None = None, retries: int = 2) -> Any:
     """Send a JSON-RPC request with retry on 429 rate-limit."""
     payload = json.dumps({
         "jsonrpc": "2.0", "id": 1,
@@ -189,7 +189,7 @@ def wei_to_gwei(wei: int) -> float:
     return wei / GWEI
 
 
-def hex_to_int(hex_str: Optional[str]) -> int:
+def hex_to_int(hex_str: str | None) -> int:
     """Convert hex string (0x...) to int. Returns 0 for None/empty."""
     if not hex_str or hex_str == "0x":
         return 0
@@ -217,14 +217,14 @@ def _encode_address(addr: str) -> str:
     return clean.zfill(64)
 
 
-def _decode_uint(hex_data: Optional[str]) -> int:
+def _decode_uint(hex_data: str | None) -> int:
     """Decode a hex-encoded uint256 return value."""
     if not hex_data or hex_data == "0x":
         return 0
     return int(hex_data.replace("0x", ""), 16)
 
 
-def _decode_string(hex_data: Optional[str]) -> str:
+def _decode_string(hex_data: str | None) -> str:
     """Decode an ABI-encoded string return value."""
     if not hex_data or hex_data == "0x" or len(hex_data) < 130:
         return ""
@@ -239,7 +239,7 @@ def _decode_string(hex_data: Optional[str]) -> str:
         return ""
 
 
-def _eth_call(to: str, selector: str, args: str = "", block: str = "latest") -> Optional[str]:
+def _eth_call(to: str, selector: str, args: str = "", block: str = "latest") -> str | None:
     """Execute eth_call with a function selector. Returns None on revert/error."""
     data = "0x" + selector + args
     try:
@@ -265,14 +265,14 @@ def _eth_call(to: str, selector: str, args: str = "", block: str = "latest") -> 
 # Price & token name helpers (CoinGecko — free, no API key)
 # ---------------------------------------------------------------------------
 
-def fetch_prices(addresses: List[str], max_lookups: int = 20) -> Dict[str, float]:
+def fetch_prices(addresses: list[str], max_lookups: int = 20) -> dict[str, float]:
     """Fetch USD prices for Base token addresses via CoinGecko (one per request).
 
     CoinGecko free tier doesn't support batch Base token lookups,
     so we do individual calls — capped at *max_lookups* to stay within
     rate limits. Returns {lowercase_address: usd_price}.
     """
-    prices: Dict[str, float] = {}
+    prices: dict[str, float] = {}
     for i, addr in enumerate(addresses[:max_lookups]):
         url = (
             f"https://api.coingecko.com/api/v3/simple/token_price/base"
@@ -280,7 +280,7 @@ def fetch_prices(addresses: List[str], max_lookups: int = 20) -> Dict[str, float
         )
         data = _http_get_json(url, timeout=10)
         if data and isinstance(data, dict):
-            for key, info in data.items():
+            for _key, info in data.items():
                 if isinstance(info, dict) and "usd" in info:
                     prices[addr.lower()] = info["usd"]
                     break
@@ -290,7 +290,7 @@ def fetch_prices(addresses: List[str], max_lookups: int = 20) -> Dict[str, float
     return prices
 
 
-def fetch_eth_price() -> Optional[float]:
+def fetch_eth_price() -> float | None:
     """Fetch current ETH price in USD via CoinGecko."""
     data = _http_get_json(
         "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd"
@@ -300,7 +300,7 @@ def fetch_eth_price() -> Optional[float]:
     return None
 
 
-def resolve_token_name(addr: str) -> Optional[Dict[str, str]]:
+def resolve_token_name(addr: str) -> dict[str, str] | None:
     """Look up token name and symbol. Checks known tokens first, then on-chain.
 
     Returns {"name": ..., "symbol": ...} or None.
@@ -421,7 +421,7 @@ def cmd_wallet(args):
 
     # Fetch prices
     eth_price = None
-    prices: Dict[str, float] = {}
+    prices: dict[str, float] = {}
     if not skip_prices:
         eth_price = fetch_eth_price()
         if tokens:
@@ -718,15 +718,15 @@ def cmd_gas(_args):
     erc20_transfer_gas  = 65_000
     swap_gas            = 200_000
 
-    def _estimate_cost(gas: int) -> Dict[str, Any]:
+    def _estimate_cost(gas: int) -> dict[str, Any]:
         cost_wei = gas * current_gas_price
         cost_eth = wei_to_eth(cost_wei)
-        entry: Dict[str, Any] = {"gas_units": gas, "cost_ETH": round(cost_eth, 10)}
+        entry: dict[str, Any] = {"gas_units": gas, "cost_ETH": round(cost_eth, 10)}
         if eth_price:
             entry["cost_USD"] = round(cost_eth * eth_price, 6)
         return entry
 
-    out: Dict[str, Any] = {
+    out: dict[str, Any] = {
         "current_gas_price_gwei": round(wei_to_gwei(current_gas_price), 6),
         "latest_block":           latest_block_info,
         "trend_10_blocks": {
@@ -778,7 +778,7 @@ def cmd_contract(args):
     results = rpc_batch(calls)
 
     # Handle per-item errors gracefully
-    by_id: Dict[int, Any] = {}
+    by_id: dict[int, Any] = {}
     for r in results:
         if "error" not in r:
             by_id[r["id"]] = r.get("result")
@@ -823,7 +823,7 @@ def cmd_contract(args):
         if impl_address != "0x" + "0" * 40:
             is_proxy = True
 
-    out: Dict[str, Any] = {
+    out: dict[str, Any] = {
         "address":        args.address,
         "is_contract":    True,
         "code_size_bytes": code_size,
@@ -883,7 +883,7 @@ def cmd_whales(args):
     for tx in (block.get("transactions") or []):
         value = hex_to_int(tx.get("value"))
         if value >= min_wei:
-            entry: Dict[str, Any] = {
+            entry: dict[str, Any] = {
                 "hash": tx.get("hash"),
                 "from": tx.get("from"),
                 "to":   tx.get("to"),
@@ -896,7 +896,7 @@ def cmd_whales(args):
     # Sort by value descending
     whales.sort(key=lambda x: x["value_ETH"], reverse=True)
 
-    out: Dict[str, Any] = {
+    out: dict[str, Any] = {
         "block":              hex_to_int(block.get("number")),
         "block_time":         hex_to_int(block.get("timestamp")),
         "min_threshold_ETH":  args.min_eth,
@@ -922,7 +922,7 @@ def cmd_price(args):
     # Special case: ETH itself
     if addr == "eth":
         eth_price = fetch_eth_price()
-        out: Dict[str, Any] = {"query": query, "token": "ETH", "name": "Ethereum"}
+        out: dict[str, Any] = {"query": query, "token": "ETH", "name": "Ethereum"}
         if eth_price:
             out["price_usd"] = eth_price
         else:

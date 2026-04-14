@@ -5,9 +5,8 @@ the _send_update_notification startup hook (sends results after restart).
 """
 
 import json
-import os
 from pathlib import Path
-from unittest.mock import patch, MagicMock, AsyncMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -73,7 +72,6 @@ class TestHandleUpdateCommand:
             pass
 
         # Simpler approach — mock at method level using a wrapper
-        from gateway.run import GatewayRunner
         runner = _make_runner()
 
         with patch("gateway.run._hermes_home", tmp_path):
@@ -82,7 +80,6 @@ class TestHandleUpdateCommand:
             # Since Path(__file__) resolves to the real gateway/run.py,
             # project_root will be the real hermes-agent dir (which HAS .git).
             # Patch Path to control this.
-            original_path = Path
 
             class FakePath(type(Path())):
                 pass
@@ -165,6 +162,7 @@ class TestHandleUpdateCommand:
     async def test_resolve_hermes_bin_fallback(self):
         """_resolve_hermes_bin falls back to sys.executable argv when which fails."""
         import sys
+
         from gateway.run import _resolve_hermes_bin
 
         fake_spec = MagicMock()
@@ -204,7 +202,7 @@ class TestHandleUpdateCommand:
              patch("gateway.run.__file__", fake_file), \
              patch("shutil.which", side_effect=lambda x: "/usr/bin/hermes" if x == "hermes" else "/usr/bin/setsid"), \
              patch("subprocess.Popen"):
-            result = await runner._handle_update_command(event)
+            await runner._handle_update_command(event)
 
         pending_path = hermes_home / ".update_pending.json"
         assert pending_path.exists()
@@ -645,7 +643,8 @@ class TestUpdateInHelp:
         """The /update command is in the help text (proxy for _known_commands)."""
         # _known_commands is local to _handle_message, so we verify by
         # checking the help output includes it.
-        from gateway.run import GatewayRunner
         import inspect
+
+        from gateway.run import GatewayRunner
         source = inspect.getsource(GatewayRunner._handle_message)
         assert '"update"' in source

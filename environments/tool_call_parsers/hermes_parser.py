@@ -8,7 +8,6 @@ Based on VLLM's Hermes2ProToolParser.extract_tool_calls()
 import json
 import re
 import uuid
-from typing import List, Optional, Tuple
 
 from openai.types.chat.chat_completion_message_tool_call import (
     ChatCompletionMessageToolCall,
@@ -41,7 +40,7 @@ class HermesToolCallParser(ToolCallParser):
             if not matches:
                 return text, None
 
-            tool_calls: List[ChatCompletionMessageToolCall] = []
+            tool_calls: list[ChatCompletionMessageToolCall] = []
             for match in matches:
                 # match is a tuple: (closed_content, unclosed_content)
                 raw_json = match[0] if match[0] else match[1]

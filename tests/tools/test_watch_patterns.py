@@ -11,17 +11,17 @@ Covers:
 """
 
 import json
-import queue
 import time
-import pytest
 from unittest.mock import patch
 
+import pytest
+
 from tools.process_registry import (
+    WATCH_MAX_PER_WINDOW,
+    WATCH_OVERLOAD_KILL_SECONDS,
+    WATCH_WINDOW_SECONDS,
     ProcessRegistry,
     ProcessSession,
-    WATCH_MAX_PER_WINDOW,
-    WATCH_WINDOW_SECONDS,
-    WATCH_OVERLOAD_KILL_SECONDS,
 )
 
 

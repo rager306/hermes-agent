@@ -1,18 +1,16 @@
 """Tests for trajectory_compressor.py — config, metrics, and compression logic."""
 
-import json
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from trajectory_compressor import (
-    CompressionConfig,
-    TrajectoryMetrics,
     AggregateMetrics,
+    CompressionConfig,
     TrajectoryCompressor,
+    TrajectoryMetrics,
 )
-
 
 # ---------------------------------------------------------------------------
 # CompressionConfig
@@ -178,7 +176,7 @@ class TestAggregateMetrics:
 
     def test_multiple_trajectories_aggregation(self):
         agg = AggregateMetrics()
-        for i in range(3):
+        for _i in range(3):
             m = TrajectoryMetrics()
             m.original_tokens = 10000
             m.compressed_tokens = 5000
@@ -275,7 +273,7 @@ class TestFindProtectedIndices:
             {"from": "gpt", "value": "c"},
             {"from": "tool", "value": "r3"},
         ]
-        protected, start, end = tc._find_protected_indices(trajectory)
+        protected, _start, _end = tc._find_protected_indices(trajectory)
         # Only first occurrences protected, no tail protection
         assert 0 in protected
         assert 1 in protected
@@ -292,7 +290,7 @@ class TestFindProtectedIndices:
             {"from": "gpt", "value": "result"},
             {"from": "human", "value": "thanks"},
         ]
-        protected, start, end = tc._find_protected_indices(trajectory)
+        protected, _start, _end = tc._find_protected_indices(trajectory)
         assert 0 in protected  # first human
 
     def test_disable_protect_first_system(self):

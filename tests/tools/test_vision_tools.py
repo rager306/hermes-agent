@@ -1,29 +1,27 @@
 """Tests for tools/vision_tools.py — URL validation, type hints, error logging."""
 
-import asyncio
 import json
 import logging
 import os
+from collections.abc import Awaitable
 from pathlib import Path
-from typing import Awaitable
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from tools.vision_tools import (
-    _validate_image_url,
-    _handle_vision_analyze,
-    _determine_mime_type,
-    _image_to_base64_data_url,
-    _resize_image_for_vision,
-    _is_image_size_error,
     _MAX_BASE64_BYTES,
     _RESIZE_TARGET_BYTES,
-    vision_analyze_tool,
+    _determine_mime_type,
+    _handle_vision_analyze,
+    _image_to_base64_data_url,
+    _is_image_size_error,
+    _resize_image_for_vision,
+    _validate_image_url,
     check_vision_requirements,
     get_debug_session_info,
+    vision_analyze_tool,
 )
-
 
 # ---------------------------------------------------------------------------
 # _validate_image_url — urlparse-based validation
@@ -347,13 +345,12 @@ class TestErrorLoggingExcInfo:
                 patch("tools.vision_tools.async_call_llm", new_callable=AsyncMock, return_value=mock_response),
             ):
                 # Make unlink fail to trigger cleanup warning
-                original_unlink = Path.unlink
 
                 def failing_unlink(self, *args, **kwargs):
                     raise PermissionError("no permission")
 
                 with patch.object(Path, "unlink", failing_unlink):
-                    result = await vision_analyze_tool(
+                    await vision_analyze_tool(
                         "https://example.com/tempimg.jpg", "describe", "test/model"
                     )
 
@@ -783,11 +780,10 @@ class TestResizeImageForVision:
         assert result.startswith("data:image/")
         # Decode and check aspect ratio is roughly preserved
         import base64
-        header, b64data = result.split(",", 1)
+        _header, b64data = result.split(",", 1)
         raw = base64.b64decode(b64data)
         from io import BytesIO
         resized = Image.open(BytesIO(raw))
-        original_ratio = 8000 / 200  # 40:1
         resized_ratio = resized.width / resized.height if resized.height > 0 else 0
         # Allow some tolerance (floor clamping), but ratio should stay above 10:1
         # With independent halving, ratio would collapse to ~1:1. Proportional
@@ -813,10 +809,9 @@ class TestResizeImageForVision:
         assert result.startswith("data:image/")
         import base64
         from io import BytesIO
-        header, b64data = result.split(",", 1)
+        _header, b64data = result.split(",", 1)
         raw = base64.b64decode(b64data)
         resized = Image.open(BytesIO(raw))
-        original_ratio = 6000 / 200  # 30:1 (h/w)
         resized_ratio = resized.height / resized.width if resized.width > 0 else 0
         assert resized_ratio > 5, (
             f"Aspect ratio collapsed: {resized.width}x{resized.height} "

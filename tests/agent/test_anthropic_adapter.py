@@ -3,11 +3,10 @@
 import json
 import time
 from types import SimpleNamespace
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
-from agent.prompt_caching import apply_anthropic_cache_control
 from agent.anthropic_adapter import (
     _is_oauth_token,
     _refresh_oauth_token,
@@ -24,7 +23,7 @@ from agent.anthropic_adapter import (
     resolve_anthropic_token,
     run_oauth_setup_token,
 )
-
+from agent.prompt_caching import apply_anthropic_cache_control
 
 # ---------------------------------------------------------------------------
 # Auth helpers
@@ -620,7 +619,7 @@ class TestConvertMessages:
         ]
         _, result = convert_messages_to_anthropic(messages)
         # tool result is in the second message (user role)
-        user_msg = [m for m in result if m["role"] == "user"][0]
+        user_msg = next(m for m in result if m["role"] == "user")
         assert user_msg["content"][0]["type"] == "tool_result"
         assert user_msg["content"][0]["tool_use_id"] == "tc_1"
 
@@ -697,7 +696,7 @@ class TestConvertMessages:
             {"role": "tool", "tool_call_id": "tc_orphan", "content": "stale result"},
         ]
         _, result = convert_messages_to_anthropic(messages)
-        user_msg = [m for m in result if m["role"] == "user"][0]
+        user_msg = next(m for m in result if m["role"] == "user")
         tool_results = [
             b for b in user_msg["content"] if b.get("type") == "tool_result"
         ]
@@ -714,7 +713,7 @@ class TestConvertMessages:
             },
             {"role": "user", "content": "Hi"},
         ]
-        system, result = convert_messages_to_anthropic(messages)
+        system, _result = convert_messages_to_anthropic(messages)
         # When cache_control is present, system should be a list of blocks
         assert isinstance(system, list)
         assert system[0]["cache_control"] == {"type": "ephemeral"}
@@ -746,7 +745,7 @@ class TestConvertMessages:
         ], native_anthropic=True)
 
         _, result = convert_messages_to_anthropic(messages)
-        user_msg = [m for m in result if m["role"] == "user"][0]
+        user_msg = next(m for m in result if m["role"] == "user")
         tool_block = user_msg["content"][0]
 
         assert tool_block["type"] == "tool_result"
@@ -1215,7 +1214,7 @@ class TestNormalizeResponse:
             SimpleNamespace(type="thinking", thinking="Let me reason about this..."),
             SimpleNamespace(type="text", text="The answer is 42."),
         ]
-        msg, reason = normalize_anthropic_response(self._make_response(blocks))
+        msg, _reason = normalize_anthropic_response(self._make_response(blocks))
         assert msg.content == "The answer is 42."
         assert msg.reasoning == "Let me reason about this..."
         assert msg.reasoning_details == [{"type": "thinking", "thinking": "Let me reason about this..."}]
@@ -1252,7 +1251,7 @@ class TestNormalizeResponse:
         block = SimpleNamespace(
             type="tool_use", id="tc_1", name="search", input={"q": "hi"}
         )
-        msg, reason = normalize_anthropic_response(
+        msg, _reason = normalize_anthropic_response(
             self._make_response([block], "tool_use")
         )
         assert msg.content is None

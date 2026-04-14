@@ -1,18 +1,19 @@
 """Tests for agent.rate_limit_tracker — header parsing and formatting."""
 
 import time
+
 import pytest
+
 from agent.rate_limit_tracker import (
     RateLimitBucket,
     RateLimitState,
-    parse_rate_limit_headers,
-    format_rate_limit_display,
-    format_rate_limit_compact,
+    _bar,
     _fmt_count,
     _fmt_seconds,
-    _bar,
+    format_rate_limit_compact,
+    format_rate_limit_display,
+    parse_rate_limit_headers,
 )
-
 
 # ── Sample headers from Nous inference API ──────────────────────────────
 
@@ -189,14 +190,11 @@ class TestAgentIntegration:
 
     def test_capture_rate_limits_from_headers(self):
         """Simulate the header capture path without a real API call."""
-        import sys
-        import os
         # Use a mock httpx-like response
         class MockResponse:
             headers = NOUS_HEADERS
 
         # Import AIAgent minimally
-        from unittest.mock import MagicMock, patch
 
         # Test the parsing directly
         state = parse_rate_limit_headers(MockResponse.headers, provider="nous")

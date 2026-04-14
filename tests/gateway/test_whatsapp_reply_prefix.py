@@ -7,13 +7,9 @@ Covers:
 - Config version covers all ENV_VARS_BY_VERSION keys (regression guard)
 """
 
-from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
-import pytest
-
-from gateway.config import GatewayConfig, Platform, PlatformConfig
-
+from gateway.config import Platform, PlatformConfig
 
 # ---------------------------------------------------------------------------
 # Config bridging from config.yaml

@@ -221,7 +221,7 @@ class LocalEnvironment(BaseEnvironment):
     CWD persists via file-based read after each command.
     """
 
-    def __init__(self, cwd: str = "", timeout: int = 60, env: dict = None):
+    def __init__(self, cwd: str = "", timeout: int = 60, env: dict | None = None):
         super().__init__(cwd=cwd or os.getcwd(), timeout=timeout, env=env)
         self.init_session()
 

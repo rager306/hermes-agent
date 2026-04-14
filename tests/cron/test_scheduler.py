@@ -3,11 +3,17 @@
 import json
 import logging
 import os
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
-
-from cron.scheduler import _resolve_origin, _resolve_delivery_target, _deliver_result, _send_media_via_adapter, run_job, SILENT_MARKER, _build_job_prompt
+from cron.scheduler import (
+    SILENT_MARKER,
+    _build_job_prompt,
+    _deliver_result,
+    _resolve_delivery_target,
+    _resolve_origin,
+    _send_media_via_adapter,
+    run_job,
+)
 
 
 class TestResolveOrigin:
@@ -315,8 +321,9 @@ class TestDeliverResultWrapping:
         """When a live adapter is available, MEDIA files should be sent as native
         platform attachments (e.g., Discord voice, Telegram audio) rather than
         as literal 'MEDIA:/path' text."""
-        from gateway.config import Platform
         from concurrent.futures import Future
+
+        from gateway.config import Platform
 
         adapter = AsyncMock()
         adapter.send.return_value = MagicMock(success=True)
@@ -366,8 +373,9 @@ class TestDeliverResultWrapping:
 
     def test_live_adapter_routes_image_to_send_image_file(self):
         """Image MEDIA files should be routed to send_image_file, not send_voice."""
-        from gateway.config import Platform
         from concurrent.futures import Future
+
+        from gateway.config import Platform
 
         adapter = AsyncMock()
         adapter.send.return_value = MagicMock(success=True)
@@ -409,8 +417,9 @@ class TestDeliverResultWrapping:
 
     def test_live_adapter_media_only_no_text(self):
         """When content is ONLY a MEDIA tag with no text, media should still be sent."""
-        from gateway.config import Platform
         from concurrent.futures import Future
+
+        from gateway.config import Platform
 
         adapter = AsyncMock()
         adapter.send_voice.return_value = MagicMock(success=True)
@@ -453,8 +462,9 @@ class TestDeliverResultWrapping:
     def test_live_adapter_sends_cleaned_text_not_raw(self):
         """The live adapter path must send cleaned text (MEDIA tags stripped),
         not the raw delivery_content with embedded MEDIA: tags."""
-        from gateway.config import Platform
         from concurrent.futures import Future
+
+        from gateway.config import Platform
 
         adapter = AsyncMock()
         adapter.send.return_value = MagicMock(success=True)
@@ -672,7 +682,7 @@ class TestRunJobSessionPersistence:
 
     def test_run_job_empty_response_returns_empty_not_placeholder(self, tmp_path):
         """Empty final_response should stay empty for delivery logic (issue #2234).
-        
+
         The placeholder '(No response generated)' should only appear in the
         output log, not in the returned final_response that's used for delivery.
         """
@@ -905,7 +915,7 @@ class TestRunJobSkillBacked:
             mock_agent.run_conversation.return_value = {"final_response": "ok"}
             mock_agent_cls.return_value = mock_agent
 
-            success, output, final_response, error = run_job(job)
+            success, _output, final_response, error = run_job(job)
 
         assert success is True
         assert error is None
@@ -951,7 +961,7 @@ class TestRunJobSkillBacked:
             mock_agent.run_conversation.return_value = {"final_response": "ok"}
             mock_agent_cls.return_value = mock_agent
 
-            success, output, final_response, error = run_job(job)
+            success, _output, final_response, error = run_job(job)
 
         assert success is True
         assert error is None

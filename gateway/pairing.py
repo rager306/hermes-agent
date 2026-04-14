@@ -25,10 +25,8 @@ import tempfile
 import threading
 import time
 from pathlib import Path
-from typing import Optional
 
 from hermes_constants import get_hermes_dir
-
 
 # Unambiguous alphabet -- excludes 0/O, 1/I to prevent confusion
 ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
@@ -115,7 +113,7 @@ class PairingStore:
         approved = self._load_json(self._approved_path(platform))
         return user_id in approved
 
-    def list_approved(self, platform: str = None) -> list:
+    def list_approved(self, platform: str | None = None) -> list:
         """List approved users, optionally filtered by platform."""
         results = []
         platforms = [platform] if platform else self._all_platforms("approved")
@@ -149,7 +147,7 @@ class PairingStore:
 
     def generate_code(
         self, platform: str, user_id: str, user_name: str = ""
-    ) -> Optional[str]:
+    ) -> str | None:
         """
         Generate a pairing code for a new user.
 
@@ -190,7 +188,7 @@ class PairingStore:
 
             return code
 
-    def approve_code(self, platform: str, code: str) -> Optional[dict]:
+    def approve_code(self, platform: str, code: str) -> dict | None:
         """
         Approve a pairing code. Adds the user to the approved list.
 
@@ -216,7 +214,7 @@ class PairingStore:
                 "user_name": entry.get("user_name", ""),
             }
 
-    def list_pending(self, platform: str = None) -> list:
+    def list_pending(self, platform: str | None = None) -> list:
         """List pending pairing requests, optionally filtered by platform."""
         results = []
         platforms = [platform] if platform else self._all_platforms("pending")
@@ -234,7 +232,7 @@ class PairingStore:
                 })
         return results
 
-    def clear_pending(self, platform: str = None) -> int:
+    def clear_pending(self, platform: str | None = None) -> int:
         """Clear all pending requests. Returns count removed."""
         with self._lock:
             count = 0

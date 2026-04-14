@@ -1,7 +1,5 @@
 """Tests for Telegram inline keyboard approval buttons."""
 
-import asyncio
-import os
 import sys
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -46,8 +44,8 @@ def _ensure_telegram_mock():
 
 _ensure_telegram_mock()
 
+from gateway.config import PlatformConfig
 from gateway.platforms.telegram import TelegramAdapter
-from gateway.config import Platform, PlatformConfig
 
 
 def _make_adapter():
@@ -105,7 +103,7 @@ class TestTelegramExecApproval:
 
         # The approval_id should map to the session_key
         assert len(adapter._approval_state) == 1
-        approval_id = list(adapter._approval_state.keys())[0]
+        approval_id = next(iter(adapter._approval_state.keys()))
         assert adapter._approval_state[approval_id] == "my-session-key"
 
     @pytest.mark.asyncio

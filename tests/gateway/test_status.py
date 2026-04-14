@@ -202,7 +202,7 @@ class TestScopedLocks:
 
         monkeypatch.setattr(status.os, "kill", fake_kill)
 
-        acquired, existing = status.acquire_scoped_lock("telegram-bot-token", "secret", metadata={"platform": "telegram"})
+        acquired, _existing = status.acquire_scoped_lock("telegram-bot-token", "secret", metadata={"platform": "telegram"})
 
         assert acquired is True
         payload = json.loads(lock_path.read_text())
@@ -216,7 +216,7 @@ class TestScopedLocks:
         lock_path.parent.mkdir(parents=True, exist_ok=True)
         lock_path.write_text("")  # simulate crash between O_CREAT and json.dump
 
-        acquired, existing = status.acquire_scoped_lock("slack-app-token", "secret", metadata={"platform": "slack"})
+        acquired, _existing = status.acquire_scoped_lock("slack-app-token", "secret", metadata={"platform": "slack"})
 
         assert acquired is True
         payload = json.loads(lock_path.read_text())
@@ -230,7 +230,7 @@ class TestScopedLocks:
         lock_path.parent.mkdir(parents=True, exist_ok=True)
         lock_path.write_text("{truncated")  # simulate partial write
 
-        acquired, existing = status.acquire_scoped_lock("slack-app-token", "secret", metadata={"platform": "slack"})
+        acquired, _existing = status.acquire_scoped_lock("slack-app-token", "secret", metadata={"platform": "slack"})
 
         assert acquired is True
         payload = json.loads(lock_path.read_text())

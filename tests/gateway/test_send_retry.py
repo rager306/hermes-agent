@@ -8,12 +8,11 @@ Verifies that:
 - Successful sends on retry return success
 - SendResult.retryable flag is respected
 """
-import pytest
 from unittest.mock import AsyncMock, patch
 
-from gateway.platforms.base import BasePlatformAdapter, SendResult, _RETRYABLE_ERROR_PATTERNS
-from gateway.platforms.base import Platform, PlatformConfig
+import pytest
 
+from gateway.platforms.base import _RETRYABLE_ERROR_PATTERNS, BasePlatformAdapter, Platform, PlatformConfig, SendResult
 
 # ---------------------------------------------------------------------------
 # Minimal concrete adapter for testing (no real network)
@@ -235,7 +234,6 @@ class TestSendWithRetryExhausted:
         network_err = SendResult(success=False, error="ConnectError")
         adapter._send_results = [network_err, network_err, network_err]
 
-        original_send = adapter.send
         call_count = [0]
 
         async def send_with_notice_failure(chat_id, content, **kwargs):

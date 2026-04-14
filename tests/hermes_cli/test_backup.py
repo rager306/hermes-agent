@@ -1,7 +1,6 @@
 """Tests for hermes backup and import commands."""
 
 import json
-import os
 import sqlite3
 import zipfile
 from argparse import Namespace
@@ -9,7 +8,6 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -259,7 +257,7 @@ class TestValidateBackupZip:
         zip_path = tmp_path / "old.zip"
         self._make_zip(zip_path, ["hermes_state.db", "memory_store.db"])
         with zipfile.ZipFile(zip_path, "r") as zf:
-            ok, reason = _validate_backup_zip(zf)
+            ok, _reason = _validate_backup_zip(zf)
         assert not ok
 
     def test_config_yaml_passes(self, tmp_path):
@@ -524,6 +522,7 @@ class TestValidation:
     def test_validate_with_config(self):
         """Zip with config.yaml passes validation."""
         import io
+
         from hermes_cli.backup import _validate_backup_zip
 
         buf = io.BytesIO()
@@ -531,12 +530,13 @@ class TestValidation:
             zf.writestr("config.yaml", "test")
         buf.seek(0)
         with zipfile.ZipFile(buf, "r") as zf:
-            ok, reason = _validate_backup_zip(zf)
+            ok, _reason = _validate_backup_zip(zf)
         assert ok
 
     def test_validate_with_env(self):
         """Zip with .env passes validation."""
         import io
+
         from hermes_cli.backup import _validate_backup_zip
 
         buf = io.BytesIO()
@@ -544,12 +544,13 @@ class TestValidation:
             zf.writestr(".env", "KEY=val")
         buf.seek(0)
         with zipfile.ZipFile(buf, "r") as zf:
-            ok, reason = _validate_backup_zip(zf)
+            ok, _reason = _validate_backup_zip(zf)
         assert ok
 
     def test_validate_rejects_random(self):
         """Zip without hermes markers fails validation."""
         import io
+
         from hermes_cli.backup import _validate_backup_zip
 
         buf = io.BytesIO()
@@ -557,12 +558,13 @@ class TestValidation:
             zf.writestr("random/file.txt", "hello")
         buf.seek(0)
         with zipfile.ZipFile(buf, "r") as zf:
-            ok, reason = _validate_backup_zip(zf)
+            ok, _reason = _validate_backup_zip(zf)
         assert not ok
 
     def test_detect_prefix_hermes(self):
         """Detects .hermes/ prefix wrapping all entries."""
         import io
+
         from hermes_cli.backup import _detect_prefix
 
         buf = io.BytesIO()
@@ -576,6 +578,7 @@ class TestValidation:
     def test_detect_prefix_none(self):
         """No prefix when entries are at root."""
         import io
+
         from hermes_cli.backup import _detect_prefix
 
         buf = io.BytesIO()
@@ -589,6 +592,7 @@ class TestValidation:
     def test_detect_prefix_only_dirs(self):
         """Prefix detection returns empty for zip with only directory entries."""
         import io
+
         from hermes_cli.backup import _detect_prefix
 
         buf = io.BytesIO()
@@ -921,7 +925,6 @@ class TestProfileRestoration:
         args = Namespace(zipfile=str(zip_path), force=True)
 
         # Simulate profiles module not being available
-        import hermes_cli.backup as backup_mod
         original_import = __builtins__.__import__ if hasattr(__builtins__, '__import__') else __import__
 
         def fake_import(name, *a, **kw):
@@ -1100,14 +1103,14 @@ class TestQuickSnapshot:
         assert restore_quick_snapshot("nonexistent", hermes_home=hermes_home) is False
 
     def test_auto_prune(self, hermes_home):
-        from hermes_cli.backup import create_quick_snapshot, list_quick_snapshots, _QUICK_DEFAULT_KEEP
+        from hermes_cli.backup import _QUICK_DEFAULT_KEEP, create_quick_snapshot, list_quick_snapshots
         for i in range(_QUICK_DEFAULT_KEEP + 5):
             create_quick_snapshot(label=f"snap-{i:03d}", hermes_home=hermes_home)
         snaps = list_quick_snapshots(limit=100, hermes_home=hermes_home)
         assert len(snaps) <= _QUICK_DEFAULT_KEEP
 
     def test_manual_prune(self, hermes_home):
-        from hermes_cli.backup import create_quick_snapshot, prune_quick_snapshots, list_quick_snapshots
+        from hermes_cli.backup import create_quick_snapshot, list_quick_snapshots, prune_quick_snapshots
         for i in range(10):
             create_quick_snapshot(label=f"s{i}", hermes_home=hermes_home)
         deleted = prune_quick_snapshots(keep=3, hermes_home=hermes_home)

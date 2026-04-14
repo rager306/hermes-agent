@@ -26,9 +26,9 @@ Session context:
 import logging
 import os
 import threading
+from collections.abc import Sequence
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Optional, Sequence
 
 from hermes_constants import get_config_path, get_hermes_home
 
@@ -160,11 +160,11 @@ COMPONENT_PREFIXES = {
 
 def setup_logging(
     *,
-    hermes_home: Optional[Path] = None,
-    log_level: Optional[str] = None,
-    max_size_mb: Optional[int] = None,
-    backup_count: Optional[int] = None,
-    mode: Optional[str] = None,
+    hermes_home: Path | None = None,
+    log_level: str | None = None,
+    max_size_mb: int | None = None,
+    backup_count: int | None = None,
+    mode: str | None = None,
     force: bool = False,
 ) -> Path:
     """Configure the Hermes logging subsystem.
@@ -341,7 +341,7 @@ def _add_rotating_handler(
     max_bytes: int,
     backup_count: int,
     formatter: logging.Formatter,
-    log_filter: Optional[logging.Filter] = None,
+    log_filter: logging.Filter | None = None,
 ) -> None:
     """Add a ``RotatingFileHandler`` to *logger*, skipping if one already
     exists for the same resolved file path (idempotent).
@@ -380,7 +380,7 @@ def _read_logging_config():
         import yaml
         config_path = get_config_path()
         if config_path.exists():
-            with open(config_path, "r", encoding="utf-8") as f:
+            with open(config_path, encoding="utf-8") as f:
                 cfg = yaml.safe_load(f) or {}
             log_cfg = cfg.get("logging", {})
             if isinstance(log_cfg, dict):

@@ -6,7 +6,6 @@ adds latency to the user-facing reply.
 
 import logging
 import threading
-from typing import Optional
 
 from agent.auxiliary_client import call_llm
 
@@ -19,7 +18,7 @@ _TITLE_PROMPT = (
 )
 
 
-def generate_title(user_message: str, assistant_response: str, timeout: float = 30.0) -> Optional[str]:
+def generate_title(user_message: str, assistant_response: str, timeout: float = 30.0) -> str | None:
     """Generate a session title from the first exchange.
 
     Uses the auxiliary LLM client (cheapest/fastest available model).

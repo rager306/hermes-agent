@@ -8,7 +8,6 @@ Based on VLLM's LongcatFlashToolParser (extends Hermes2ProToolParser).
 import json
 import re
 import uuid
-from typing import List, Optional
 
 from openai.types.chat.chat_completion_message_tool_call import (
     ChatCompletionMessageToolCall,
@@ -39,7 +38,7 @@ class LongcatToolCallParser(ToolCallParser):
             if not matches:
                 return text, None
 
-            tool_calls: List[ChatCompletionMessageToolCall] = []
+            tool_calls: list[ChatCompletionMessageToolCall] = []
             for match in matches:
                 raw_json = match[0] if match[0] else match[1]
                 if not raw_json.strip():

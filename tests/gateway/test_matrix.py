@@ -1,12 +1,10 @@
 """Tests for Matrix platform adapter (mautrix-python backend)."""
-import asyncio
-import json
-import re
 import sys
 import time
 import types
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import MagicMock, patch, AsyncMock
 
 from gateway.config import Platform, PlatformConfig
 
@@ -157,7 +155,7 @@ def _make_fake_mautrix():
     mautrix_crypto_store = types.ModuleType("mautrix.crypto.store")
 
     class MemoryCryptoStore:
-        def __init__(self, account_id="", pickle_key=""):  # noqa: S301
+        def __init__(self, account_id="", pickle_key=""):
             self.account_id = account_id
             self.pickle_key = pickle_key
 
@@ -169,7 +167,7 @@ def _make_fake_mautrix():
     class PgCryptoStore:
         upgrade_table = MagicMock()
 
-        def __init__(self, account_id="", pickle_key="", db=None):  # noqa: S301
+        def __init__(self, account_id="", pickle_key="", db=None):
             self.account_id = account_id
             self.pickle_key = pickle_key
             self.db = db
@@ -817,7 +815,7 @@ class TestMatrixE2EEHardFail:
 
     @pytest.mark.asyncio
     async def test_connect_fails_when_encryption_true_but_no_e2ee_deps(self):
-        from gateway.platforms.matrix import MatrixAdapter, _check_e2ee_deps
+        from gateway.platforms.matrix import MatrixAdapter
 
         config = PlatformConfig(
             enabled=True,
@@ -1039,7 +1037,6 @@ class TestMatrixPasswordLoginDeviceId:
 
         fake_mautrix_mods["mautrix.client"].Client = MagicMock(return_value=mock_client)
 
-        from gateway.platforms import matrix as matrix_mod
         with patch.dict("sys.modules", fake_mautrix_mods):
             with patch.object(adapter, "_refresh_dm_cache", AsyncMock()):
                 with patch.object(adapter, "_sync_loop", AsyncMock(return_value=None)):
@@ -1163,7 +1160,7 @@ class TestMatrixMegolmEventHandling:
 
         # Should have buffered the event
         assert len(adapter._pending_megolm) == 1
-        room_id, event, ts = adapter._pending_megolm[0]
+        room_id, event, _ts = adapter._pending_megolm[0]
         assert room_id == "!room:example.org"
         assert event is fake_event
 
@@ -1329,7 +1326,7 @@ class TestMatrixEncryptedEventHandler:
         # Verify event handlers were registered.
         # In mautrix the order is: add_event_handler(EventType, callback)
         handler_calls = mock_client.add_event_handler.call_args_list
-        registered_types = [call.args[0] for call in handler_calls]
+        [call.args[0] for call in handler_calls]
 
         # Should have registered handlers for ROOM_MESSAGE, REACTION, INVITE, and ROOM_ENCRYPTED
         assert len(handler_calls) >= 4  # At minimum these four

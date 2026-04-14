@@ -94,7 +94,7 @@ class TestMCPConfigWatch:
 
     def test_missing_config_file_does_not_crash(self, tmp_path):
         """If config.yaml doesn't exist, _check_config_mcp_changes is a no-op."""
-        obj, cfg_file = _make_cli(tmp_path)
+        obj, _cfg_file = _make_cli(tmp_path)
         missing = tmp_path / "nonexistent.yaml"
 
         with patch("hermes_cli.config.get_config_path", return_value=missing):

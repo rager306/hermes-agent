@@ -26,15 +26,14 @@ except ImportError:
     except ImportError:
         msvcrt = None
 from pathlib import Path
-from typing import Optional
 
 # Add parent directory to path for imports BEFORE repo-level imports.
 # Without this, standalone invocations (e.g. after `hermes update` reloads
 # the module) fail with ModuleNotFoundError for hermes_time et al.
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from hermes_constants import get_hermes_home
 from hermes_cli.config import load_config
+from hermes_constants import get_hermes_home
 from hermes_time import now as _hermes_now
 
 logger = logging.getLogger(__name__)
@@ -47,7 +46,7 @@ _KNOWN_DELIVERY_PLATFORMS = frozenset({
     "wecom", "wecom_callback", "weixin", "sms", "email", "webhook", "bluebubbles",
 })
 
-from cron.jobs import get_due_jobs, mark_job_run, save_job_output, advance_next_run
+from cron.jobs import advance_next_run, get_due_jobs, mark_job_run, save_job_output
 
 # Sentinel: when a cron agent has nothing new to report, it can start its
 # response with this marker to suppress delivery.  Output is still saved
@@ -62,7 +61,7 @@ _LOCK_DIR = _hermes_home / "cron"
 _LOCK_FILE = _LOCK_DIR / ".tick.lock"
 
 
-def _resolve_origin(job: dict) -> Optional[dict]:
+def _resolve_origin(job: dict) -> dict | None:
     """Extract origin info from a job, preserving any extra routing metadata."""
     origin = job.get("origin")
     if not origin:
@@ -74,7 +73,7 @@ def _resolve_origin(job: dict) -> Optional[dict]:
     return None
 
 
-def _resolve_delivery_target(job: dict) -> Optional[dict]:
+def _resolve_delivery_target(job: dict) -> dict | None:
     """Resolve the concrete auto-delivery target for a cron job, if any."""
     deliver = job.get("deliver", "local")
     origin = _resolve_origin(job)
@@ -196,7 +195,7 @@ def _send_media_via_adapter(adapter, chat_id: str, media_files: list, metadata: 
             logger.warning("Job '%s': failed to send media %s: %s", job.get("id", "?"), media_path, e)
 
 
-def _deliver_result(job: dict, content: str, adapters=None, loop=None) -> Optional[str]:
+def _deliver_result(job: dict, content: str, adapters=None, loop=None) -> str | None:
     """
     Deliver job output to the configured target (origin chat, specific platform, etc.).
 
@@ -234,8 +233,8 @@ def _deliver_result(job: dict, content: str, adapters=None, loop=None) -> Option
             job["id"], platform_name, chat_id, thread_id,
         )
 
+    from gateway.config import Platform, load_gateway_config
     from tools.send_message_tool import _send_to_platform
-    from gateway.config import load_gateway_config, Platform
 
     platform_map = {
         "telegram": Platform.TELEGRAM,
@@ -572,15 +571,15 @@ def _build_job_prompt(job: dict) -> str:
     return "\n".join(parts)
 
 
-def run_job(job: dict) -> tuple[bool, str, str, Optional[str]]:
+def run_job(job: dict) -> tuple[bool, str, str, str | None]:
     """
     Execute a single cron job.
-    
+
     Returns:
         Tuple of (success, full_output_doc, final_response, error_message)
     """
     from run_agent import AIAgent
-    
+
     # Initialize SQLite session store so cron job messages are persisted
     # and discoverable via session_search (same pattern as gateway/run.py).
     _session_db = None
@@ -589,7 +588,7 @@ def run_job(job: dict) -> tuple[bool, str, str, Optional[str]]:
         _session_db = SessionDB()
     except Exception as e:
         logger.debug("Job '%s': SQLite session store not available: %s", job.get("id", "?"), e)
-    
+
     job_id = job["id"]
     job_name = job["name"]
     prompt = _build_job_prompt(job)
@@ -665,7 +664,7 @@ def run_job(job: dict) -> tuple[bool, str, str, Optional[str]]:
                 pfpath = _hermes_home / pfpath
             if pfpath.exists():
                 try:
-                    with open(pfpath, "r", encoding="utf-8") as _pf:
+                    with open(pfpath, encoding="utf-8") as _pf:
                         prefill_messages = _json.load(_pf)
                     if not isinstance(prefill_messages, list):
                         prefill_messages = None
@@ -681,8 +680,8 @@ def run_job(job: dict) -> tuple[bool, str, str, Optional[str]]:
         smart_routing = _cfg.get("smart_model_routing", {}) or {}
 
         from hermes_cli.runtime_provider import (
-            resolve_runtime_provider,
             format_runtime_provider_error,
+            resolve_runtime_provider,
         )
         try:
             runtime_kwargs = {
@@ -753,7 +752,7 @@ def run_job(job: dict) -> tuple[bool, str, str, Optional[str]]:
             session_id=_cron_session_id,
             session_db=_session_db,
         )
-        
+
         # Run the agent with an *inactivity*-based timeout: the job can run
         # for hours if it's actively calling tools / receiving stream tokens,
         # but a hung API call or stuck tool with no activity for the configured
@@ -831,7 +830,7 @@ def run_job(job: dict) -> tuple[bool, str, str, Optional[str]]:
         # Use a separate variable for log display; keep final_response clean
         # for delivery logic (empty response = no delivery).
         logged_response = final_response if final_response else "(No response generated)"
-        
+
         output = f"""# Cron Job: {job_name}
 
 **Job ID:** {job_id}
@@ -846,14 +845,14 @@ def run_job(job: dict) -> tuple[bool, str, str, Optional[str]]:
 
 {logged_response}
 """
-        
+
         logger.info("Job '%s' completed successfully", job_name)
         return True, output, final_response, None
-        
+
     except Exception as e:
-        error_msg = f"{type(e).__name__}: {str(e)}"
+        error_msg = f"{type(e).__name__}: {e!s}"
         logger.exception("Job '%s' failed: %s", job_name, error_msg)
-        
+
         output = f"""# Cron Job: {job_name} (FAILED)
 
 **Job ID:** {job_id}
@@ -897,15 +896,15 @@ def run_job(job: dict) -> tuple[bool, str, str, Optional[str]]:
 def tick(verbose: bool = True, adapters=None, loop=None) -> int:
     """
     Check and run all due jobs.
-    
+
     Uses a file lock so only one tick runs at a time, even if the gateway's
     in-process ticker and a standalone daemon or manual tick overlap.
-    
+
     Args:
         verbose: Whether to print status messages
         adapters: Optional dict mapping Platform → live adapter (from gateway)
         loop: Optional asyncio event loop (from gateway) for live adapter sends
-    
+
     Returns:
         Number of jobs executed (0 if another tick is already running)
     """
@@ -919,7 +918,7 @@ def tick(verbose: bool = True, adapters=None, loop=None) -> int:
             fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
         elif msvcrt:
             msvcrt.locking(lock_fd.fileno(), msvcrt.LK_NBLCK, 1)
-    except (OSError, IOError):
+    except OSError:
         logger.debug("Tick skipped — another instance holds the lock")
         if lock_fd is not None:
             lock_fd.close()
@@ -981,7 +980,7 @@ def tick(verbose: bool = True, adapters=None, loop=None) -> int:
         elif msvcrt:
             try:
                 msvcrt.locking(lock_fd.fileno(), msvcrt.LK_UNLCK, 1)
-            except (OSError, IOError):
+            except OSError:
                 pass
         lock_fd.close()
 

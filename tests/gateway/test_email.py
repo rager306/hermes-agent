@@ -14,13 +14,12 @@ Covers:
 
 import os
 import unittest
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from email.mime.base import MIMEBase
 from email import encoders
+from email.mime.base import MIMEBase
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from pathlib import Path
-from types import SimpleNamespace
-from unittest.mock import patch, MagicMock, AsyncMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from gateway.platforms.base import SendResult
 
@@ -262,22 +261,25 @@ class TestAuthorizationMaps(unittest.TestCase):
 
     def test_email_in_adapter_factory(self):
         """Email adapter creation branch should exist."""
-        import gateway.run
         import inspect
+
+        import gateway.run
         source = inspect.getsource(gateway.run.GatewayRunner._create_adapter)
         self.assertIn("Platform.EMAIL", source)
 
     def test_email_in_allowed_users_map(self):
         """EMAIL_ALLOWED_USERS should be in platform_env_map."""
-        import gateway.run
         import inspect
+
+        import gateway.run
         source = inspect.getsource(gateway.run.GatewayRunner._is_user_authorized)
         self.assertIn("EMAIL_ALLOWED_USERS", source)
 
     def test_email_in_allow_all_map(self):
         """EMAIL_ALLOW_ALL_USERS should be in platform_allow_all_map."""
-        import gateway.run
         import inspect
+
+        import gateway.run
         source = inspect.getsource(gateway.run.GatewayRunner._is_user_authorized)
         self.assertIn("EMAIL_ALLOW_ALL_USERS", source)
 
@@ -286,14 +288,16 @@ class TestSendMessageToolRouting(unittest.TestCase):
     """Verify email routing in send_message_tool."""
 
     def test_email_in_platform_map(self):
-        import tools.send_message_tool as smt
         import inspect
+
+        import tools.send_message_tool as smt
         source = inspect.getsource(smt._handle_send)
         self.assertIn('"email"', source)
 
     def test_send_to_platform_has_email_branch(self):
-        import tools.send_message_tool as smt
         import inspect
+
+        import tools.send_message_tool as smt
         source = inspect.getsource(smt._send_to_platform)
         self.assertIn("Platform.EMAIL", source)
 
@@ -302,8 +306,9 @@ class TestCronDelivery(unittest.TestCase):
     """Verify email in cron scheduler platform_map."""
 
     def test_email_in_cron_platform_map(self):
-        import cron.scheduler
         import inspect
+
+        import cron.scheduler
         source = inspect.getsource(cron.scheduler)
         self.assertIn('"email"', source)
 
@@ -334,8 +339,9 @@ class TestChannelDirectory(unittest.TestCase):
     """Verify email in channel directory session-based discovery."""
 
     def test_email_in_session_discovery(self):
-        import gateway.channel_directory
         import inspect
+
+        import gateway.channel_directory
         source = inspect.getsource(gateway.channel_directory.build_channel_directory)
         self.assertIn('"email"', source)
 
@@ -422,7 +428,6 @@ class TestDispatchMessage(unittest.TestCase):
 
         adapter._message_handler = mock_handler
         # Override handle_message to capture the event directly
-        original_handle = adapter.handle_message
 
         async def capture_handle(event):
             captured_events.append(event)
@@ -504,6 +509,7 @@ class TestDispatchMessage(unittest.TestCase):
     def test_image_attachment_sets_photo_type(self):
         """Email with image attachment should set message type to PHOTO."""
         import asyncio
+
         from gateway.platforms.base import MessageType
         adapter = self._make_adapter()
         captured_events = []
@@ -708,7 +714,6 @@ class TestSendMethods(unittest.TestCase):
     def test_send_image_includes_url(self):
         """send_image should include image URL in email body."""
         import asyncio
-        from unittest.mock import AsyncMock
         adapter = self._make_adapter()
 
         adapter.send = AsyncMock(return_value=SendResult(success=True))
@@ -1010,6 +1015,7 @@ class TestSendEmailStandalone(unittest.TestCase):
         """_send_email should use verified STARTTLS when sending."""
         import asyncio
         import ssl
+
         from tools.send_message_tool import _send_email
 
         with patch("smtplib.SMTP") as mock_smtp:
@@ -1033,6 +1039,7 @@ class TestSendEmailStandalone(unittest.TestCase):
     def test_send_email_tool_failure(self):
         """SMTP failure should return error dict."""
         import asyncio
+
         from tools.send_message_tool import _send_email
 
         with patch("smtplib.SMTP", side_effect=Exception("SMTP error")):
@@ -1047,6 +1054,7 @@ class TestSendEmailStandalone(unittest.TestCase):
     def test_send_email_tool_not_configured(self):
         """Missing config should return error."""
         import asyncio
+
         from tools.send_message_tool import _send_email
 
         result = asyncio.run(

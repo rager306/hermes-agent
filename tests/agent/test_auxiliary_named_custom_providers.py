@@ -1,7 +1,6 @@
 """Tests for named custom provider and 'main' alias resolution in auxiliary_client."""
 
-import os
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -96,7 +95,7 @@ class TestResolveProviderClientMainAlias:
             ],
         })
         from agent.auxiliary_client import resolve_provider_client
-        client, model = resolve_provider_client("main", "test")
+        client, _model = resolve_provider_client("main", "test")
         assert client is not None
         assert "beans.local" in str(client.base_url)
 
@@ -138,7 +137,7 @@ class TestResolveProviderClientNamedCustom:
             ],
         })
         from agent.auxiliary_client import resolve_provider_client
-        client, model = resolve_provider_client("local", "test")
+        client, _model = resolve_provider_client("local", "test")
         assert client is not None
         # no-key-required should be used
 
@@ -151,7 +150,7 @@ class TestResolveProviderClientNamedCustom:
         })
         from agent.auxiliary_client import resolve_provider_client
         # "coffee" doesn't exist in custom_providers
-        client, model = resolve_provider_client("coffee", "test")
+        client, _model = resolve_provider_client("coffee", "test")
         assert client is None
 
 
@@ -247,7 +246,7 @@ class TestVisionPathApiMode:
             mock_gcc.return_value = (MagicMock(), "test-model")
             from agent.auxiliary_client import resolve_vision_provider_client
 
-            provider, client, model = resolve_vision_provider_client(provider="deepseek")
+            _provider, _client, _model = resolve_vision_provider_client(provider="deepseek")
 
         mock_gcc.assert_called_once()
         _, kwargs = mock_gcc.call_args

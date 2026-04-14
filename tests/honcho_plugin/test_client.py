@@ -3,18 +3,14 @@
 import json
 import os
 from pathlib import Path
-from unittest.mock import patch, MagicMock
-
-import pytest
+from unittest.mock import MagicMock, patch
 
 from plugins.memory.honcho.client import (
+    GLOBAL_CONFIG_PATH,
     HonchoClientConfig,
-    get_honcho_client,
     reset_honcho_client,
     resolve_active_host,
     resolve_config_path,
-    GLOBAL_CONFIG_PATH,
-    HOST,
 )
 
 

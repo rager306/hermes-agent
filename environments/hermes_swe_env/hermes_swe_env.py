@@ -33,18 +33,15 @@ import logging
 import sys
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 # Ensure repo root is on sys.path for imports
 _repo_root = Path(__file__).resolve().parent.parent.parent
 if str(_repo_root) not in sys.path:
     sys.path.insert(0, str(_repo_root))
 
-from datasets import load_dataset
-
-from atroposlib.envs.base import ScoredDataGroup
 from atroposlib.envs.server_handling.server_manager import APIServerConfig
-from atroposlib.type_definitions import Item
+from datasets import load_dataset
 
 from environments.agent_loop import AgentResult
 from environments.hermes_base_env import HermesAgentBaseEnv, HermesAgentEnvConfig
@@ -74,7 +71,7 @@ class HermesSweEnv(HermesAgentBaseEnv):
     env_config_cls = HermesSweEnvConfig
 
     @classmethod
-    def config_init(cls) -> Tuple[HermesSweEnvConfig, List[APIServerConfig]]:
+    def config_init(cls) -> tuple[HermesSweEnvConfig, list[APIServerConfig]]:
         """
         Default configuration for the SWE environment.
 
@@ -131,9 +128,9 @@ class HermesSweEnv(HermesAgentBaseEnv):
             # Placeholder if no dataset specified
             self.dataset = []
         self.iter = 0
-        self.reward_buffer: List[float] = []
+        self.reward_buffer: list[float] = []
 
-    async def get_next_item(self) -> Dict[str, Any]:
+    async def get_next_item(self) -> dict[str, Any]:
         """Cycle through the SWE dataset."""
         if not self.dataset:
             raise ValueError("No dataset loaded. Set dataset_name in config.")
@@ -141,7 +138,7 @@ class HermesSweEnv(HermesAgentBaseEnv):
         self.iter += 1
         return item
 
-    def format_prompt(self, item: Dict[str, Any]) -> str:
+    def format_prompt(self, item: dict[str, Any]) -> str:
         """
         Format the SWE task prompt.
 
@@ -158,7 +155,7 @@ class HermesSweEnv(HermesAgentBaseEnv):
         return prompt
 
     async def compute_reward(
-        self, item: Dict[str, Any], result: AgentResult, ctx: ToolContext
+        self, item: dict[str, Any], result: AgentResult, ctx: ToolContext
     ) -> float:
         """
         Score by running tests in the model's Modal sandbox.
@@ -208,7 +205,7 @@ class HermesSweEnv(HermesAgentBaseEnv):
             end_time=end_time,
         )
 
-    async def wandb_log(self, wandb_metrics: Optional[Dict] = None):
+    async def wandb_log(self, wandb_metrics: dict | None = None):
         """Log SWE-specific metrics."""
         if wandb_metrics is None:
             wandb_metrics = {}

@@ -2,16 +2,14 @@
 
 import asyncio
 import os
-from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from tools.send_message_tool import (
     _send_dingtalk,
     _send_homeassistant,
-    _send_mattermost,
     _send_matrix,
+    _send_mattermost,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers

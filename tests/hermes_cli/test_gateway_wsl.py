@@ -1,16 +1,13 @@
 """Tests for WSL detection and WSL-aware gateway behavior."""
 
-import io
 import subprocess
-import sys
 from types import SimpleNamespace
-from unittest.mock import patch, MagicMock, mock_open
+from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
 
 import hermes_cli.gateway as gateway
 import hermes_constants
-
 
 # =============================================================================
 # is_wsl() in hermes_constants

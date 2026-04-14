@@ -378,7 +378,6 @@ class TestSessionContext:
         """Session context is per-thread — one thread's context doesn't leak."""
         hermes_logging.setup_logging(hermes_home=hermes_home)
 
-        results = {}
 
         def thread_a():
             hermes_logging.set_session_context("thread_a_session")
@@ -733,5 +732,5 @@ class TestReadLoggingConfig:
         config = {"model": "test"}
         (hermes_home / "config.yaml").write_text(yaml.dump(config))
 
-        level, max_size, backup = hermes_logging._read_logging_config()
+        level, _max_size, _backup = hermes_logging._read_logging_config()
         assert level is None

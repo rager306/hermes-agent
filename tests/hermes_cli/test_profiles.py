@@ -5,35 +5,33 @@ management, export/import, renaming, alias collision checks, profile isolation,
 and shell completion generation.
 """
 
-import json
 import io
-import os
+import json
 import tarfile
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 from hermes_cli.profiles import (
-    validate_profile_name,
-    get_profile_dir,
+    _get_default_hermes_home,
+    _get_profiles_root,
+    check_alias_collision,
     create_profile,
     delete_profile,
-    list_profiles,
-    set_active_profile,
-    get_active_profile,
-    get_active_profile_name,
-    resolve_profile_env,
-    check_alias_collision,
-    rename_profile,
     export_profile,
-    import_profile,
     generate_bash_completion,
     generate_zsh_completion,
-    _get_profiles_root,
-    _get_default_hermes_home,
+    get_active_profile,
+    get_active_profile_name,
+    get_profile_dir,
+    import_profile,
+    list_profiles,
+    rename_profile,
+    resolve_profile_env,
+    set_active_profile,
+    validate_profile_name,
 )
-
 
 # ---------------------------------------------------------------------------
 # Shared fixture: redirect Path.home() and HERMES_HOME for profile tests
@@ -445,7 +443,7 @@ class TestExportImport:
 
     def test_import_to_existing_name_raises(self, profile_env, tmp_path):
         create_profile("coder", no_alias=True)
-        profile_dir = get_profile_dir("coder")
+        get_profile_dir("coder")
 
         archive_path = tmp_path / "export" / "coder.tar.gz"
         archive_path.parent.mkdir(parents=True, exist_ok=True)
@@ -793,7 +791,7 @@ class TestEdgeCases:
 
     def test_list_profiles_default_info_fields(self, profile_env):
         profiles = list_profiles()
-        default = [p for p in profiles if p.name == "default"][0]
+        default = next(p for p in profiles if p.name == "default")
         assert default.is_default is True
         assert default.gateway_running is False
         assert default.skill_count == 0
@@ -846,7 +844,6 @@ class TestEdgeCases:
 
     def test_clone_from_named_profile(self, profile_env):
         """Clone config from a named (non-default) profile."""
-        tmp_path = profile_env
         # Create source profile with config
         source_dir = create_profile("source", no_alias=True)
         (source_dir / "config.yaml").write_text("model: cloned")
@@ -860,7 +857,6 @@ class TestEdgeCases:
 
     def test_delete_clears_active_profile(self, profile_env):
         """Deleting the active profile resets active to default."""
-        tmp_path = profile_env
         create_profile("coder", no_alias=True)
         set_active_profile("coder")
         assert get_active_profile() == "coder"

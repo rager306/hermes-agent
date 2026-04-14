@@ -9,13 +9,8 @@ Covers:
 6. Full 429 rotation cycle: retry-same → rotate → exhaust → fallback
 """
 
-import os
-import time
 from types import SimpleNamespace
-from unittest.mock import MagicMock, patch, PropertyMock
-
-import pytest
-
+from unittest.mock import MagicMock, patch
 
 # ---------------------------------------------------------------------------
 # 1. smart_model_routing: credential_pool preserved in no-route path
@@ -312,7 +307,7 @@ class TestPoolRotationCycle:
 
     def test_pool_exhaustion_returns_false(self):
         """When all credentials exhausted, recovery should return False."""
-        agent, pool, _ = self._make_agent_with_pool(1)
+        agent, _pool, _ = self._make_agent_with_pool(1)
         # First 429 sets flag
         _, has_retried = agent._recover_with_credential_pool(
             status_code=429, has_retried_429=False
@@ -327,7 +322,7 @@ class TestPoolRotationCycle:
 
     def test_402_immediate_rotation(self):
         """402 (billing) should immediately rotate, no retry-first."""
-        agent, pool, entries = self._make_agent_with_pool(3)
+        agent, pool, _entries = self._make_agent_with_pool(3)
         recovered, has_retried = agent._recover_with_credential_pool(
             status_code=402, has_retried_429=False
         )

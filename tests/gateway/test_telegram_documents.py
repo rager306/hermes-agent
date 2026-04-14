@@ -9,7 +9,6 @@ We mock the telegram module at import time to avoid collection errors.
 """
 
 import asyncio
-import importlib
 import os
 import sys
 from types import SimpleNamespace
@@ -17,14 +16,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from gateway.config import Platform, PlatformConfig
+from gateway.config import PlatformConfig
 from gateway.platforms.base import (
     MessageEvent,
     MessageType,
     SendResult,
-    SUPPORTED_DOCUMENT_TYPES,
 )
-
 
 # ---------------------------------------------------------------------------
 # Mock the telegram package if it's not installed
@@ -52,8 +49,7 @@ def _ensure_telegram_mock():
 _ensure_telegram_mock()
 
 # Now we can safely import
-from gateway.platforms.telegram import TelegramAdapter  # noqa: E402
-
+from gateway.platforms.telegram import TelegramAdapter
 
 # ---------------------------------------------------------------------------
 # Helpers to build mock Telegram objects

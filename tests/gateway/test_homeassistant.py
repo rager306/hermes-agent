@@ -19,7 +19,6 @@ from gateway.platforms.homeassistant import (
     check_ha_requirements,
 )
 
-
 # ---------------------------------------------------------------------------
 # check_ha_requirements
 # ---------------------------------------------------------------------------

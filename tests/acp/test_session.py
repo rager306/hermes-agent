@@ -4,8 +4,9 @@ import contextlib
 import io
 import json
 from types import SimpleNamespace
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 from acp_adapter.session import SessionManager, SessionState
 from hermes_state import SessionDB

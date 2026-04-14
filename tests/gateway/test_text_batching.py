@@ -9,14 +9,12 @@ Telegram and Feishu.
 """
 
 import asyncio
-import os
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock
 
 import pytest
 
 from gateway.config import Platform, PlatformConfig
 from gateway.platforms.base import MessageEvent, MessageType, SessionSource
-
 
 # =====================================================================
 # Helpers

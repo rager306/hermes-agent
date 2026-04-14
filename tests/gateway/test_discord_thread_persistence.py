@@ -8,8 +8,6 @@ import json
 import os
 from unittest.mock import patch
 
-import pytest
-
 
 class TestDiscordThreadPersistence:
     """Thread IDs are saved to disk and reloaded on init."""

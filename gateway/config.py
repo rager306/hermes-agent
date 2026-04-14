@@ -8,13 +8,13 @@ Handles loading and validating configuration for:
 - Delivery preferences
 """
 
+import json
 import logging
 import os
-import json
-from pathlib import Path
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any
 from enum import Enum
+from pathlib import Path
+from typing import Any
 
 from hermes_cli.config import get_hermes_home
 from utils import is_truthy_value
@@ -72,23 +72,23 @@ class Platform(Enum):
 class HomeChannel:
     """
     Default destination for a platform.
-    
+
     When a cron job specifies deliver="telegram" without a specific chat ID,
     messages are sent to this home channel.
     """
     platform: Platform
     chat_id: str
     name: str  # Human-readable name for display
-    
-    def to_dict(self) -> Dict[str, Any]:
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "platform": self.platform.value,
             "chat_id": self.chat_id,
             "name": self.name,
         }
-    
+
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "HomeChannel":
+    def from_dict(cls, data: dict[str, Any]) -> "HomeChannel":
         return cls(
             platform=Platform(data["platform"]),
             chat_id=str(data["chat_id"]),
@@ -100,7 +100,7 @@ class HomeChannel:
 class SessionResetPolicy:
     """
     Controls when sessions reset (lose context).
-    
+
     Modes:
     - "daily": Reset at a specific hour each day
     - "idle": Reset after N minutes of inactivity
@@ -112,8 +112,8 @@ class SessionResetPolicy:
     idle_minutes: int = 1440  # Minutes of inactivity before reset (24 hours)
     notify: bool = True  # Send a notification to the user when auto-reset occurs
     notify_exclude_platforms: tuple = ("api_server", "webhook")  # Platforms that don't get reset notifications
-    
-    def to_dict(self) -> Dict[str, Any]:
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "mode": self.mode,
             "at_hour": self.at_hour,
@@ -121,9 +121,9 @@ class SessionResetPolicy:
             "notify": self.notify,
             "notify_exclude_platforms": list(self.notify_exclude_platforms),
         }
-    
+
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "SessionResetPolicy":
+    def from_dict(cls, data: dict[str, Any]) -> "SessionResetPolicy":
         # Handle both missing keys and explicit null values (YAML null → None)
         mode = data.get("mode")
         at_hour = data.get("at_hour")
@@ -143,20 +143,20 @@ class SessionResetPolicy:
 class PlatformConfig:
     """Configuration for a single messaging platform."""
     enabled: bool = False
-    token: Optional[str] = None  # Bot token (Telegram, Discord)
-    api_key: Optional[str] = None  # API key if different from token
-    home_channel: Optional[HomeChannel] = None
-    
+    token: str | None = None  # Bot token (Telegram, Discord)
+    api_key: str | None = None  # API key if different from token
+    home_channel: HomeChannel | None = None
+
     # Reply threading mode (Telegram/Slack)
     # - "off": Never thread replies to original message
     # - "first": Only first chunk threads to user's message (default)
     # - "all": All chunks in multi-part replies thread to user's message
     reply_to_mode: str = "first"
-    
+
     # Platform-specific settings
-    extra: Dict[str, Any] = field(default_factory=dict)
-    
-    def to_dict(self) -> Dict[str, Any]:
+    extra: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
         result = {
             "enabled": self.enabled,
             "extra": self.extra,
@@ -169,13 +169,13 @@ class PlatformConfig:
         if self.home_channel:
             result["home_channel"] = self.home_channel.to_dict()
         return result
-    
+
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "PlatformConfig":
+    def from_dict(cls, data: dict[str, Any]) -> "PlatformConfig":
         home_channel = None
         if "home_channel" in data:
             home_channel = HomeChannel.from_dict(data["home_channel"])
-        
+
         return cls(
             enabled=data.get("enabled", False),
             token=data.get("token"),
@@ -195,7 +195,7 @@ class StreamingConfig:
     buffer_threshold: int = 40    # Chars before forcing an edit
     cursor: str = " ▉"           # Cursor shown during streaming
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "enabled": self.enabled,
             "transport": self.transport,
@@ -205,7 +205,7 @@ class StreamingConfig:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "StreamingConfig":
+    def from_dict(cls, data: dict[str, Any]) -> "StreamingConfig":
         if not data:
             return cls()
         return cls(
@@ -221,26 +221,26 @@ class StreamingConfig:
 class GatewayConfig:
     """
     Main gateway configuration.
-    
+
     Manages all platform connections, session policies, and delivery settings.
     """
     # Platform configurations
-    platforms: Dict[Platform, PlatformConfig] = field(default_factory=dict)
-    
+    platforms: dict[Platform, PlatformConfig] = field(default_factory=dict)
+
     # Session reset policies by type
     default_reset_policy: SessionResetPolicy = field(default_factory=SessionResetPolicy)
-    reset_by_type: Dict[str, SessionResetPolicy] = field(default_factory=dict)
-    reset_by_platform: Dict[Platform, SessionResetPolicy] = field(default_factory=dict)
-    
+    reset_by_type: dict[str, SessionResetPolicy] = field(default_factory=dict)
+    reset_by_platform: dict[Platform, SessionResetPolicy] = field(default_factory=dict)
+
     # Reset trigger commands
-    reset_triggers: List[str] = field(default_factory=lambda: ["/new", "/reset"])
+    reset_triggers: list[str] = field(default_factory=lambda: ["/new", "/reset"])
 
     # User-defined quick commands (slash commands that bypass the agent loop)
-    quick_commands: Dict[str, Any] = field(default_factory=dict)
-    
+    quick_commands: dict[str, Any] = field(default_factory=dict)
+
     # Storage paths
     sessions_dir: Path = field(default_factory=lambda: get_hermes_home() / "sessions")
-    
+
     # Delivery settings
     always_log_local: bool = True  # Always save cron outputs to local files
 
@@ -257,7 +257,7 @@ class GatewayConfig:
     # Streaming configuration
     streaming: StreamingConfig = field(default_factory=StreamingConfig)
 
-    def get_connected_platforms(self) -> List[Platform]:
+    def get_connected_platforms(self) -> list[Platform]:
         """Return list of platforms that are enabled and configured."""
         connected = []
         for platform, config in self.platforms.items():
@@ -304,35 +304,35 @@ class GatewayConfig:
             elif platform == Platform.BLUEBUBBLES and config.extra.get("server_url") and config.extra.get("password"):
                 connected.append(platform)
         return connected
-    
-    def get_home_channel(self, platform: Platform) -> Optional[HomeChannel]:
+
+    def get_home_channel(self, platform: Platform) -> HomeChannel | None:
         """Get the home channel for a platform."""
         config = self.platforms.get(platform)
         if config:
             return config.home_channel
         return None
-    
+
     def get_reset_policy(
-        self, 
-        platform: Optional[Platform] = None,
-        session_type: Optional[str] = None
+        self,
+        platform: Platform | None = None,
+        session_type: str | None = None
     ) -> SessionResetPolicy:
         """
         Get the appropriate reset policy for a session.
-        
+
         Priority: platform override > type override > default
         """
         # Platform-specific override takes precedence
         if platform and platform in self.reset_by_platform:
             return self.reset_by_platform[platform]
-        
+
         # Type-specific override (dm, group, thread)
         if session_type and session_type in self.reset_by_type:
             return self.reset_by_type[session_type]
-        
+
         return self.default_reset_policy
-    
-    def to_dict(self) -> Dict[str, Any]:
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "platforms": {
                 p.value: c.to_dict() for p, c in self.platforms.items()
@@ -354,9 +354,9 @@ class GatewayConfig:
             "unauthorized_dm_behavior": self.unauthorized_dm_behavior,
             "streaming": self.streaming.to_dict(),
         }
-    
+
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "GatewayConfig":
+    def from_dict(cls, data: dict[str, Any]) -> "GatewayConfig":
         platforms = {}
         for platform_name, platform_data in data.get("platforms", {}).items():
             try:
@@ -364,11 +364,11 @@ class GatewayConfig:
                 platforms[platform] = PlatformConfig.from_dict(platform_data)
             except ValueError:
                 pass  # Skip unknown platforms
-        
+
         reset_by_type = {}
         for type_name, policy_data in data.get("reset_by_type", {}).items():
             reset_by_type[type_name] = SessionResetPolicy.from_dict(policy_data)
-        
+
         reset_by_platform = {}
         for platform_name, policy_data in data.get("reset_by_platform", {}).items():
             try:
@@ -376,15 +376,15 @@ class GatewayConfig:
                 reset_by_platform[platform] = SessionResetPolicy.from_dict(policy_data)
             except ValueError:
                 pass
-        
+
         default_policy = SessionResetPolicy()
         if "default_reset_policy" in data:
             default_policy = SessionResetPolicy.from_dict(data["default_reset_policy"])
-        
+
         sessions_dir = get_hermes_home() / "sessions"
         if "sessions_dir" in data:
             sessions_dir = Path(data["sessions_dir"])
-        
+
         quick_commands = data.get("quick_commands", {})
         if not isinstance(quick_commands, dict):
             quick_commands = {}
@@ -416,7 +416,7 @@ class GatewayConfig:
             streaming=StreamingConfig.from_dict(data.get("streaming", {})),
         )
 
-    def get_unauthorized_dm_behavior(self, platform: Optional[Platform] = None) -> str:
+    def get_unauthorized_dm_behavior(self, platform: Platform | None = None) -> str:
         """Return the effective unauthorized-DM behavior for a platform."""
         if platform:
             platform_cfg = self.platforms.get(platform)
@@ -446,7 +446,7 @@ def load_gateway_config() -> GatewayConfig:
     gateway_json_path = _home / "gateway.json"
     if gateway_json_path.exists():
         try:
-            with open(gateway_json_path, "r", encoding="utf-8") as f:
+            with open(gateway_json_path, encoding="utf-8") as f:
                 gw_data = json.load(f) or {}
             logger.info(
                 "Loaded legacy %s — consider moving settings to config.yaml",
@@ -663,7 +663,7 @@ def load_gateway_config() -> GatewayConfig:
 
     # Override with environment variables
     _apply_env_overrides(config)
-    
+
     # --- Validate loaded values ---
     _validate_gateway_config(config)
 
@@ -741,7 +741,7 @@ def _validate_gateway_config(config: "GatewayConfig") -> None:
 
 def _apply_env_overrides(config: GatewayConfig) -> None:
     """Apply environment variable overrides to config."""
-    
+
     # Telegram
     telegram_token = os.getenv("TELEGRAM_BOT_TOKEN")
     if telegram_token:
@@ -749,14 +749,14 @@ def _apply_env_overrides(config: GatewayConfig) -> None:
             config.platforms[Platform.TELEGRAM] = PlatformConfig()
         config.platforms[Platform.TELEGRAM].enabled = True
         config.platforms[Platform.TELEGRAM].token = telegram_token
-    
+
     # Reply threading mode for Telegram (off/first/all)
     telegram_reply_mode = os.getenv("TELEGRAM_REPLY_TO_MODE", "").lower()
     if telegram_reply_mode in ("off", "first", "all"):
         if Platform.TELEGRAM not in config.platforms:
             config.platforms[Platform.TELEGRAM] = PlatformConfig()
         config.platforms[Platform.TELEGRAM].reply_to_mode = telegram_reply_mode
-    
+
     telegram_fallback_ips = os.getenv("TELEGRAM_FALLBACK_IPS", "")
     if telegram_fallback_ips:
         if Platform.TELEGRAM not in config.platforms:
@@ -772,7 +772,7 @@ def _apply_env_overrides(config: GatewayConfig) -> None:
             chat_id=telegram_home,
             name=os.getenv("TELEGRAM_HOME_CHANNEL_NAME", "Home"),
         )
-    
+
     # Discord
     discord_token = os.getenv("DISCORD_BOT_TOKEN")
     if discord_token:
@@ -780,7 +780,7 @@ def _apply_env_overrides(config: GatewayConfig) -> None:
             config.platforms[Platform.DISCORD] = PlatformConfig()
         config.platforms[Platform.DISCORD].enabled = True
         config.platforms[Platform.DISCORD].token = discord_token
-    
+
     discord_home = os.getenv("DISCORD_HOME_CHANNEL")
     if discord_home and Platform.DISCORD in config.platforms:
         config.platforms[Platform.DISCORD].home_channel = HomeChannel(
@@ -788,21 +788,21 @@ def _apply_env_overrides(config: GatewayConfig) -> None:
             chat_id=discord_home,
             name=os.getenv("DISCORD_HOME_CHANNEL_NAME", "Home"),
         )
-    
+
     # Reply threading mode for Discord (off/first/all)
     discord_reply_mode = os.getenv("DISCORD_REPLY_TO_MODE", "").lower()
     if discord_reply_mode in ("off", "first", "all"):
         if Platform.DISCORD not in config.platforms:
             config.platforms[Platform.DISCORD] = PlatformConfig()
         config.platforms[Platform.DISCORD].reply_to_mode = discord_reply_mode
-    
+
     # WhatsApp (typically uses different auth mechanism)
     whatsapp_enabled = os.getenv("WHATSAPP_ENABLED", "").lower() in ("true", "1", "yes")
     if whatsapp_enabled:
         if Platform.WHATSAPP not in config.platforms:
             config.platforms[Platform.WHATSAPP] = PlatformConfig()
         config.platforms[Platform.WHATSAPP].enabled = True
-    
+
     # Slack
     slack_token = os.getenv("SLACK_BOT_TOKEN")
     if slack_token:
@@ -817,7 +817,7 @@ def _apply_env_overrides(config: GatewayConfig) -> None:
             chat_id=slack_home,
             name=os.getenv("SLACK_HOME_CHANNEL_NAME", ""),
         )
-    
+
     # Signal
     signal_url = os.getenv("SIGNAL_HTTP_URL")
     signal_account = os.getenv("SIGNAL_ACCOUNT")
@@ -1116,7 +1116,7 @@ def _apply_env_overrides(config: GatewayConfig) -> None:
             config.default_reset_policy.idle_minutes = int(idle_minutes)
         except ValueError:
             pass
-    
+
     reset_hour = os.getenv("SESSION_RESET_HOUR")
     if reset_hour:
         try:

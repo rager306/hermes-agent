@@ -1,13 +1,7 @@
 """Tests for MCP stability fixes — event loop handler, PID tracking, shutdown robustness."""
 
-import asyncio
-import os
 import signal
-import threading
-from unittest.mock import patch, MagicMock
-
-import pytest
-
+from unittest.mock import MagicMock, patch
 
 # ---------------------------------------------------------------------------
 # Fix 1: MCP event loop exception handler
@@ -74,14 +68,14 @@ class TestStdioPidTracking:
             assert isinstance(pid, int)
 
     def test_stdio_pids_starts_empty(self):
-        from tools.mcp_tool import _stdio_pids, _lock
+        from tools.mcp_tool import _lock, _stdio_pids
         with _lock:
             # Might have residual state from other tests, just check type
             assert isinstance(_stdio_pids, set)
 
     def test_kill_orphaned_noop_when_empty(self):
         """_kill_orphaned_mcp_children does nothing when no PIDs tracked."""
-        from tools.mcp_tool import _kill_orphaned_mcp_children, _stdio_pids, _lock
+        from tools.mcp_tool import _kill_orphaned_mcp_children, _lock, _stdio_pids
 
         with _lock:
             _stdio_pids.clear()
@@ -91,7 +85,7 @@ class TestStdioPidTracking:
 
     def test_kill_orphaned_handles_dead_pids(self):
         """_kill_orphaned_mcp_children gracefully handles already-dead PIDs."""
-        from tools.mcp_tool import _kill_orphaned_mcp_children, _stdio_pids, _lock
+        from tools.mcp_tool import _kill_orphaned_mcp_children, _lock, _stdio_pids
 
         # Use a PID that definitely doesn't exist
         fake_pid = 999999999
@@ -106,7 +100,7 @@ class TestStdioPidTracking:
 
     def test_kill_orphaned_uses_sigkill_when_available(self, monkeypatch):
         """Unix-like platforms should keep using SIGKILL for orphan cleanup."""
-        from tools.mcp_tool import _kill_orphaned_mcp_children, _stdio_pids, _lock
+        from tools.mcp_tool import _kill_orphaned_mcp_children, _lock, _stdio_pids
 
         fake_pid = 424242
         with _lock:
@@ -126,7 +120,7 @@ class TestStdioPidTracking:
 
     def test_kill_orphaned_falls_back_without_sigkill(self, monkeypatch):
         """Windows-like signal modules without SIGKILL should fall back to SIGTERM."""
-        from tools.mcp_tool import _kill_orphaned_mcp_children, _stdio_pids, _lock
+        from tools.mcp_tool import _kill_orphaned_mcp_children, _lock, _stdio_pids
 
         fake_pid = 434343
         with _lock:
@@ -175,6 +169,7 @@ class TestMCPReloadTimeout:
         # by checking that _check_config_mcp_changes doesn't call
         # _reload_mcp directly (it uses a thread now)
         import inspect
+
         from cli import HermesCLI
         source = inspect.getsource(HermesCLI._check_config_mcp_changes)
         # The fix adds threading.Thread for _reload_mcp

@@ -16,17 +16,17 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-from hermes_cli.config import get_hermes_home, get_config_path, load_config, save_config
-from hermes_constants import get_optional_skills_dir
+from hermes_cli.config import get_config_path, get_hermes_home, load_config, save_config
 from hermes_cli.setup import (
     Colors,
     color,
+    print_error,
     print_header,
     print_info,
     print_success,
-    print_error,
     prompt_yes_no,
 )
+from hermes_constants import get_optional_skills_dir
 
 logger = logging.getLogger(__name__)
 
@@ -588,7 +588,7 @@ def _cmd_cleanup(args):
         if state_files:
             print()
             print(color(f"  {len(state_files)} state file(s) found:", Colors.YELLOW))
-            for path, desc in state_files[:8]:
+            for _path, desc in state_files[:8]:
                 print(f"      {desc}")
             if len(state_files) > 8:
                 print(f"      ... and {len(state_files) - 8} more")

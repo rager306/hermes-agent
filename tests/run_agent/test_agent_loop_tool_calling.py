@@ -18,12 +18,11 @@ Run:
     pytest tests/test_agent_loop_tool_calling.py -v -k "single"  # run one test
 """
 
-import asyncio
 import json
 import os
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Set
+from typing import Any
 from unittest.mock import patch
 
 import pytest
@@ -36,8 +35,9 @@ if str(_repo_root) not in sys.path:
     sys.path.insert(0, str(_repo_root))
 
 try:
-    from environments.agent_loop import AgentResult, HermesAgentLoop
     from atroposlib.envs.server_handling.openai_server import OpenAIServer  # noqa: F401
+
+    from environments.agent_loop import AgentResult, HermesAgentLoop
 except ImportError:
     pytest.skip("atroposlib not installed", allow_module_level=True)
 
@@ -60,7 +60,7 @@ def _get_api_key():
     return key
 
 
-def _make_server(model: str = None):
+def _make_server(model: str | None = None):
     """Create an OpenAI server for testing."""
     from atroposlib.envs.server_handling.openai_server import OpenAIServer
     from atroposlib.envs.server_handling.server_manager import APIServerConfig
@@ -168,7 +168,7 @@ ERROR_TOOL = {
 }
 
 
-def _fake_tool_handler(tool_name: str, args: Dict[str, Any], **kwargs) -> str:
+def _fake_tool_handler(tool_name: str, args: dict[str, Any], **kwargs) -> str:
     """Handle fake tool calls for testing."""
     if tool_name == "calculate":
         expr = args.get("expression", "0")

@@ -5,13 +5,13 @@ inside the OpenAI SDK. They can appear via clipboard paste from rich-text
 editors like Google Docs.
 """
 import json
-import pytest
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from run_agent import (
-    _sanitize_surrogates,
     _sanitize_messages_surrogates,
-    _SURROGATE_RE,
+    _sanitize_surrogates,
 )
 
 

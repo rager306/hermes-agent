@@ -4,12 +4,10 @@ and handles responses properly for all supported providers.
 Ensures changes to one provider path don't silently break another.
 """
 
-import json
-import os
 import sys
 import types
 from types import SimpleNamespace
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 import pytest
 
@@ -18,7 +16,6 @@ sys.modules.setdefault("firecrawl", types.SimpleNamespace(Firecrawl=object))
 sys.modules.setdefault("fal_client", types.SimpleNamespace())
 
 from run_agent import AIAgent
-
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -48,16 +45,16 @@ def _make_agent(monkeypatch, provider, api_mode="chat_completions", base_url="ht
     monkeypatch.setattr("run_agent.get_tool_definitions", lambda **kw: _tool_defs("web_search", "terminal"))
     monkeypatch.setattr("run_agent.check_toolset_requirements", lambda: {})
     monkeypatch.setattr("run_agent.OpenAI", _FakeOpenAI)
-    kwargs = dict(
-        api_key="test-key",
-        base_url=base_url,
-        provider=provider,
-        api_mode=api_mode,
-        max_iterations=4,
-        quiet_mode=True,
-        skip_context_files=True,
-        skip_memory=True,
-    )
+    kwargs = {
+        "api_key": "test-key",
+        "base_url": base_url,
+        "provider": provider,
+        "api_mode": api_mode,
+        "max_iterations": 4,
+        "quiet_mode": True,
+        "skip_context_files": True,
+        "skip_memory": True,
+    }
     if model:
         kwargs["model"] = model
     return AIAgent(**kwargs)
@@ -556,7 +553,7 @@ class TestNormalizeCodexResponse:
             ],
             status="completed",
         )
-        msg, reason = agent._normalize_codex_response(response)
+        msg, _reason = agent._normalize_codex_response(response)
         assert msg.codex_reasoning_items is not None
         assert len(msg.codex_reasoning_items) == 1
         assert msg.codex_reasoning_items[0]["encrypted_content"] == "gAAAA_secret_blob_123"
@@ -572,7 +569,7 @@ class TestNormalizeCodexResponse:
             ],
             status="completed",
         )
-        msg, reason = agent._normalize_codex_response(response)
+        msg, _reason = agent._normalize_codex_response(response)
         assert msg.codex_reasoning_items is None
 
     def test_tool_calls_extracted(self, monkeypatch):
@@ -676,7 +673,7 @@ class TestAuxiliaryClientProviderPriority:
         monkeypatch.setenv("OPENROUTER_API_KEY", "or-key")
         from agent.auxiliary_client import get_text_auxiliary_client
         with patch("agent.auxiliary_client.OpenAI") as mock:
-            client, model = get_text_auxiliary_client()
+            _client, model = get_text_auxiliary_client()
         assert model == "google/gemini-3-flash-preview"
         assert "openrouter" in str(mock.call_args.kwargs["base_url"]).lower()
 
@@ -684,8 +681,8 @@ class TestAuxiliaryClientProviderPriority:
         monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
         from agent.auxiliary_client import get_text_auxiliary_client
         with patch("agent.auxiliary_client._read_nous_auth", return_value={"access_token": "nous-tok"}), \
-             patch("agent.auxiliary_client.OpenAI") as mock:
-            client, model = get_text_auxiliary_client()
+             patch("agent.auxiliary_client.OpenAI"):
+            _client, model = get_text_auxiliary_client()
         assert model == "google/gemini-3-flash-preview"
 
     def test_custom_endpoint_when_no_nous(self, monkeypatch):
@@ -702,14 +699,14 @@ class TestAuxiliaryClientProviderPriority:
              patch("agent.auxiliary_client._resolve_custom_runtime",
                    return_value=("http://localhost:1234/v1", "local-key")), \
              patch("agent.auxiliary_client.OpenAI") as mock:
-            client, model = get_text_auxiliary_client()
+            _client, _model = get_text_auxiliary_client()
         assert mock.call_args.kwargs["base_url"] == "http://localhost:1234/v1"
 
     def test_codex_fallback_last_resort(self, monkeypatch):
         monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
         monkeypatch.delenv("OPENAI_BASE_URL", raising=False)
         monkeypatch.delenv("OPENAI_API_KEY", raising=False)
-        from agent.auxiliary_client import get_text_auxiliary_client, CodexAuxiliaryClient
+        from agent.auxiliary_client import CodexAuxiliaryClient, get_text_auxiliary_client
         with patch("agent.auxiliary_client._read_nous_auth", return_value=None), \
              patch("agent.auxiliary_client._read_codex_access_token", return_value="codex-tok"), \
              patch("agent.auxiliary_client.OpenAI"):

@@ -11,21 +11,21 @@ Modular wizard with independently-runnable sections:
 Config files are stored in ~/.hermes/ for easy access.
 """
 
+import copy
 import importlib.util
 import logging
 import os
 import shutil
 import sys
-import copy
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Any
 
 from hermes_cli.nous_subscription import (
     apply_nous_provider_defaults,
     get_nous_subscription_features,
 )
-from tools.tool_backend_helpers import managed_nous_tools_enabled
 from hermes_constants import get_optional_skills_dir
+from tools.tool_backend_helpers import managed_nous_tools_enabled
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +34,7 @@ PROJECT_ROOT = Path(__file__).parent.parent.resolve()
 _DOCS_BASE = "https://hermes-agent.nousresearch.com/docs"
 
 
-def _model_config_dict(config: Dict[str, Any]) -> Dict[str, Any]:
+def _model_config_dict(config: dict[str, Any]) -> dict[str, Any]:
     current_model = config.get("model")
     if isinstance(current_model, dict):
         return dict(current_model)
@@ -43,7 +43,7 @@ def _model_config_dict(config: Dict[str, Any]) -> Dict[str, Any]:
     return {}
 
 
-def _set_default_model(config: Dict[str, Any], model_name: str) -> None:
+def _set_default_model(config: dict[str, Any], model_name: str) -> None:
     if not model_name:
         return
     model_cfg = _model_config_dict(config)
@@ -51,12 +51,12 @@ def _set_default_model(config: Dict[str, Any], model_name: str) -> None:
     config["model"] = model_cfg
 
 
-def _get_credential_pool_strategies(config: Dict[str, Any]) -> Dict[str, str]:
+def _get_credential_pool_strategies(config: dict[str, Any]) -> dict[str, str]:
     strategies = config.get("credential_pool_strategies")
     return dict(strategies) if isinstance(strategies, dict) else {}
 
 
-def _set_credential_pool_strategy(config: Dict[str, Any], provider: str, strategy: str) -> None:
+def _set_credential_pool_strategy(config: dict[str, Any], provider: str, strategy: str) -> None:
     if not provider:
         return
     strategies = _get_credential_pool_strategies(config)
@@ -121,14 +121,14 @@ _DEFAULT_PROVIDER_MODELS = {
 }
 
 
-def _current_reasoning_effort(config: Dict[str, Any]) -> str:
+def _current_reasoning_effort(config: dict[str, Any]) -> str:
     agent_cfg = config.get("agent")
     if isinstance(agent_cfg, dict):
         return str(agent_cfg.get("reasoning_effort") or "").strip().lower()
     return ""
 
 
-def _set_reasoning_effort(config: Dict[str, Any], effort: str) -> None:
+def _set_reasoning_effort(config: dict[str, Any], effort: str) -> None:
     agent_cfg = config.get("agent")
     if not isinstance(agent_cfg, dict):
         agent_cfg = {}
@@ -137,11 +137,11 @@ def _set_reasoning_effort(config: Dict[str, Any], effort: str) -> None:
 
 
 def _setup_copilot_reasoning_selection(
-    config: Dict[str, Any],
+    config: dict[str, Any],
     model_id: str,
     prompt_choice,
     *,
-    catalog: Optional[list[dict[str, Any]]] = None,
+    catalog: list[dict[str, Any]] | None = None,
     api_key: str = "",
 ) -> None:
     from hermes_cli.models import github_model_reasoning_efforts, normalize_copilot_model_id
@@ -156,7 +156,7 @@ def _setup_copilot_reasoning_selection(
         return
 
     current_effort = _current_reasoning_effort(config)
-    choices = list(efforts) + ["Disable reasoning", f"Keep current ({current_effort or 'default'})"]
+    choices = [*list(efforts), "Disable reasoning", f"Keep current ({current_effort or 'default'})"]
 
     if current_effort == "none":
         default_idx = len(efforts)
@@ -176,20 +176,19 @@ def _setup_copilot_reasoning_selection(
 
 
 # Import config helpers
+# display_hermes_home imported lazily at call sites (stale-module safety during hermes update)
+from hermes_cli.colors import Colors, color
 from hermes_cli.config import (
     DEFAULT_CONFIG,
-    get_hermes_home,
+    ensure_hermes_home,
     get_config_path,
     get_env_path,
+    get_env_value,
+    get_hermes_home,
     load_config,
     save_config,
     save_env_value,
-    get_env_value,
-    ensure_hermes_home,
 )
-# display_hermes_home imported lazily at call sites (stale-module safety during hermes update)
-
-from hermes_cli.colors import Colors, color
 
 
 def print_header(title: str):
@@ -198,7 +197,7 @@ def print_header(title: str):
     print(color(f"◆ {title}", Colors.CYAN, Colors.BOLD))
 
 
-from hermes_cli.cli_output import (  # noqa: E402
+from hermes_cli.cli_output import (
     print_error,
     print_info,
     print_success,
@@ -236,7 +235,7 @@ def print_noninteractive_setup_guidance(reason: str | None = None) -> None:
     print()
 
 
-def prompt(question: str, default: str = None, password: bool = False) -> str:
+def prompt(question: str, default: str | None = None, password: bool = False) -> str:
     """Prompt for input with optional default."""
     if default:
         display = f"{question} [{default}]: "
@@ -331,7 +330,7 @@ def prompt_yes_no(question: str, default: bool = True) -> bool:
         print_error("Please enter 'y' or 'n'")
 
 
-def prompt_checklist(title: str, items: list, pre_selected: list = None) -> list:
+def prompt_checklist(title: str, items: list, pre_selected: list | None = None) -> list:
     """
     Display a multi-select checklist and return the indices of selected items.
 
@@ -721,6 +720,7 @@ def setup_model_provider(config: dict, *, quick: bool = False):
     if not quick and _supports_same_provider_pool_setup(selected_provider):
         try:
             from types import SimpleNamespace
+
             from agent.credential_pool import load_pool
             from hermes_cli.auth_commands import auth_add_command
 
@@ -859,7 +859,7 @@ def setup_model_provider(config: dict, *, quick: bool = False):
                 _vaux["base_url"] = _base_url
                 if "api.openai.com" in _base_url.lower():
                     _oai_vision_models = ["gpt-4o", "gpt-4o-mini", "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-nano"]
-                    _vm_choices = _oai_vision_models + ["Use default (gpt-4o-mini)"]
+                    _vm_choices = [*_oai_vision_models, "Use default (gpt-4o-mini)"]
                     _vm_idx = prompt_choice("Select vision model:", _vm_choices, 0)
                     _selected_vision_model = (
                         _oai_vision_models[_vm_idx]
@@ -2234,15 +2234,15 @@ def setup_gateway(config: dict):
         from hermes_cli.gateway import (
             _is_service_installed,
             _is_service_running,
-            supports_systemd_services,
             has_conflicting_systemd_units,
             install_linux_gateway_from_setup,
-            print_systemd_scope_conflict_warning,
-            systemd_start,
-            systemd_restart,
             launchd_install,
-            launchd_start,
             launchd_restart,
+            launchd_start,
+            print_systemd_scope_conflict_warning,
+            supports_systemd_services,
+            systemd_restart,
+            systemd_start,
         )
 
         service_installed = _is_service_installed()
@@ -2345,7 +2345,7 @@ def setup_tools(config: dict, first_install: bool = False):
 # =============================================================================
 
 
-def _get_section_config_summary(config: dict, section_key: str) -> Optional[str]:
+def _get_section_config_summary(config: dict, section_key: str) -> str | None:
     """Return a short summary if a setup section is already configured, else None.
 
     Used after OpenClaw migration to detect which sections can be skipped.
@@ -2943,7 +2943,7 @@ def run_setup_wizard(args):
     _offer_launch_chat()
 
 
-def _resolve_hermes_chat_argv() -> Optional[list[str]]:
+def _resolve_hermes_chat_argv() -> list[str] | None:
     """Resolve argv for launching ``hermes chat`` in a fresh process."""
     hermes_bin = shutil.which("hermes")
     if hermes_bin:
@@ -3019,9 +3019,9 @@ def _run_first_time_quick_setup(config: dict, hermes_home, is_existing: bool):
 def _run_quick_setup(config: dict, hermes_home):
     """Quick setup — only configure items that are missing."""
     from hermes_cli.config import (
-        get_missing_env_vars,
-        get_missing_config_fields,
         check_config_version,
+        get_missing_config_fields,
+        get_missing_env_vars,
     )
 
     print()

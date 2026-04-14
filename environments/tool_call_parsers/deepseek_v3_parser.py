@@ -13,10 +13,9 @@ Format uses special unicode tokens:
 Fixes Issue #989: Support for multiple simultaneous tool calls.
 """
 
+import logging
 import re
 import uuid
-import logging
-from typing import List, Optional, Tuple
 
 from openai.types.chat.chat_completion_message_tool_call import (
     ChatCompletionMessageToolCall,
@@ -59,12 +58,12 @@ class DeepSeekV3ToolCallParser(ToolCallParser):
             if not matches:
                 return text, None
 
-            tool_calls: List[ChatCompletionMessageToolCall] = []
-            
+            tool_calls: list[ChatCompletionMessageToolCall] = []
+
             for match in matches:
                 func_name = match.group("function_name").strip()
                 func_args = match.group("function_arguments").strip()
-                
+
                 tool_calls.append(
                     ChatCompletionMessageToolCall(
                         id=f"call_{uuid.uuid4().hex[:8]}",

@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterable, Optional, Set
 
 from hermes_cli.auth import get_nous_auth_status
 from hermes_cli.config import get_env_value, load_config
@@ -17,7 +17,6 @@ from tools.tool_backend_helpers import (
     resolve_modal_backend_state,
     resolve_openai_audio_api_key,
 )
-
 
 _DEFAULT_PLATFORM_TOOLSETS = {
     "cli": "hermes-cli",
@@ -43,7 +42,7 @@ class NousSubscriptionFeatures:
     subscribed: bool
     nous_auth_present: bool
     provider_is_nous: bool
-    features: Dict[str, NousFeatureState]
+    features: dict[str, NousFeatureState]
 
     @property
     def web(self) -> NousFeatureState:
@@ -71,7 +70,7 @@ class NousSubscriptionFeatures:
             yield self.features[key]
 
 
-def _model_config_dict(config: Dict[str, object]) -> Dict[str, object]:
+def _model_config_dict(config: dict[str, object]) -> dict[str, object]:
     model_cfg = config.get("model")
     if isinstance(model_cfg, dict):
         return dict(model_cfg)
@@ -80,7 +79,7 @@ def _model_config_dict(config: Dict[str, object]) -> Dict[str, object]:
     return {}
 
 
-def _toolset_enabled(config: Dict[str, object], toolset_key: str) -> bool:
+def _toolset_enabled(config: dict[str, object], toolset_key: str) -> bool:
     from toolsets import resolve_toolset
 
     platform_toolsets = config.get("platform_toolsets")
@@ -102,7 +101,7 @@ def _toolset_enabled(config: Dict[str, object], toolset_key: str) -> bool:
             if default_toolset:
                 toolset_names = [default_toolset]
 
-        available_tools: Set[str] = set()
+        available_tools: set[str] = set()
         for toolset_name in toolset_names:
             if not isinstance(toolset_name, str) or not toolset_name:
                 continue
@@ -216,7 +215,7 @@ def _resolve_browser_feature_state(
 
 
 def get_nous_subscription_features(
-    config: Optional[Dict[str, object]] = None,
+    config: dict[str, object] | None = None,
 ) -> NousSubscriptionFeatures:
     if config is None:
         config = load_config() or {}
@@ -450,7 +449,7 @@ def get_nous_subscription_explainer_lines() -> list[str]:
     ]
 
 
-def apply_nous_provider_defaults(config: Dict[str, object]) -> set[str]:
+def apply_nous_provider_defaults(config: dict[str, object]) -> set[str]:
     """Apply provider-level Nous defaults shared by `hermes setup` and `hermes model`."""
     if not managed_nous_tools_enabled():
         return set()
@@ -473,9 +472,9 @@ def apply_nous_provider_defaults(config: Dict[str, object]) -> set[str]:
 
 
 def apply_nous_managed_defaults(
-    config: Dict[str, object],
+    config: dict[str, object],
     *,
-    enabled_toolsets: Optional[Iterable[str]] = None,
+    enabled_toolsets: Iterable[str] | None = None,
 ) -> set[str]:
     if not managed_nous_tools_enabled():
         return set()

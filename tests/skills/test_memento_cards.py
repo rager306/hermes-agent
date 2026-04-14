@@ -2,10 +2,9 @@
 
 import csv
 import json
-import os
 import sys
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from unittest import mock
 
@@ -30,7 +29,7 @@ def isolated_data(tmp_path, monkeypatch):
 
 def _run(capsys, argv: list[str]) -> dict:
     """Run main() with given argv and return parsed JSON output."""
-    with mock.patch("sys.argv", ["memento_cards"] + argv):
+    with mock.patch("sys.argv", ["memento_cards", *argv]):
         memento_cards.main()
     captured = capsys.readouterr()
     return json.loads(captured.out)
@@ -137,9 +136,9 @@ class TestRating:
     def test_hard_adds_1_day(self, capsys):
         _run(capsys, ["add", "--question", "Q", "--answer", "A"])
         card_id = _run(capsys, ["list"])["cards"][0]["id"]
-        before = datetime.now(timezone.utc)
+        before = datetime.now(UTC)
         result = _run(capsys, ["rate", "--id", card_id, "--rating", "hard"])
-        after = datetime.now(timezone.utc)
+        after = datetime.now(UTC)
         next_review = datetime.fromisoformat(result["card"]["next_review_at"])
         assert before + timedelta(days=1) <= next_review <= after + timedelta(days=1)
         assert result["card"]["ease_streak"] == 0
@@ -147,7 +146,7 @@ class TestRating:
     def test_good_adds_3_days(self, capsys):
         _run(capsys, ["add", "--question", "Q", "--answer", "A"])
         card_id = _run(capsys, ["list"])["cards"][0]["id"]
-        before = datetime.now(timezone.utc)
+        before = datetime.now(UTC)
         result = _run(capsys, ["rate", "--id", card_id, "--rating", "good"])
         next_review = datetime.fromisoformat(result["card"]["next_review_at"])
         assert next_review >= before + timedelta(days=3)
@@ -172,7 +171,7 @@ class TestRating:
         card_id = _run(capsys, ["list"])["cards"][0]["id"]
 
         # Force card to be due by manipulating next_review_at through rate
-        for i in range(3):
+        for _i in range(3):
             # Load and directly set next_review_at to now so it's ratable
             data = memento_cards._load()
             for c in data["cards"]:
@@ -230,7 +229,7 @@ class TestCSV:
         assert result["exported"] == 2
 
         # Verify CSV content
-        with open(csv_path, "r") as f:
+        with open(csv_path) as f:
             reader = csv.reader(f)
             rows = list(reader)
         assert len(rows) == 2

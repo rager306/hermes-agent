@@ -8,13 +8,11 @@ deduplication, text cleanup, and extension routing.
 Based on PR #1636 by sudoingX (salvaged + hardened).
 """
 
-import os
 from unittest.mock import patch
 
 import pytest
 
 from gateway.platforms.base import BasePlatformAdapter
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -227,7 +225,7 @@ class TestDeduplication:
 class TestTextCleanup:
 
     def test_path_removed_from_text(self):
-        paths, cleaned = _extract("Before /tmp/x.png after")
+        _paths, cleaned = _extract("Before /tmp/x.png after")
         assert "Before" in cleaned
         assert "after" in cleaned
         assert "/tmp/x.png" not in cleaned

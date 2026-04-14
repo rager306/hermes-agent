@@ -10,21 +10,14 @@ Covers:
 """
 
 import json
-import queue
-import threading
 import time
-from pathlib import Path
-from unittest.mock import MagicMock, patch, call
-
-import pytest
+from unittest.mock import MagicMock, patch
 
 from plugins.memory.honcho.client import HonchoClientConfig
 from plugins.memory.honcho.session import (
     HonchoSession,
     HonchoSessionManager,
-    _ASYNC_SHUTDOWN,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers

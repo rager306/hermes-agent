@@ -7,15 +7,12 @@ Covers:
 - status_callback invocation
 """
 
-import json
-from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from agent.display import format_context_pressure, format_context_pressure_gateway
 from run_agent import AIAgent
-
 
 # ---------------------------------------------------------------------------
 # Display formatting tests

@@ -1,6 +1,6 @@
+import sys
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
-import sys
 
 import pytest
 
@@ -41,7 +41,7 @@ def _ensure_discord_mock():
 
 _ensure_discord_mock()
 
-from gateway.platforms.discord import DiscordAdapter  # noqa: E402
+from gateway.platforms.discord import DiscordAdapter
 
 
 @pytest.mark.asyncio

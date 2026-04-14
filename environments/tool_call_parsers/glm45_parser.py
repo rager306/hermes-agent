@@ -16,7 +16,7 @@ import ast
 import json
 import re
 import uuid
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from openai.types.chat.chat_completion_message_tool_call import (
     ChatCompletionMessageToolCall,
@@ -70,7 +70,7 @@ class Glm45ToolCallParser(ToolCallParser):
             if not matched_calls:
                 return text, None
 
-            tool_calls: List[ChatCompletionMessageToolCall] = []
+            tool_calls: list[ChatCompletionMessageToolCall] = []
 
             for match in matched_calls:
                 detail = self.FUNC_DETAIL_REGEX.search(match)
@@ -82,7 +82,7 @@ class Glm45ToolCallParser(ToolCallParser):
 
                 # Parse arg_key/arg_value pairs
                 pairs = self.FUNC_ARG_REGEX.findall(func_args_raw) if func_args_raw else []
-                arg_dict: Dict[str, Any] = {}
+                arg_dict: dict[str, Any] = {}
                 for key, value in pairs:
                     arg_key = key.strip()
                     arg_val = _deserialize_value(value.strip())

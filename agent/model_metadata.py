@@ -5,11 +5,10 @@ and run_agent.py for pre-flight context checks.
 """
 
 import logging
-import os
 import re
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 from urllib.parse import urlparse
 
 import requests
@@ -64,11 +63,11 @@ def _strip_provider_prefix(model: str) -> str:
         return suffix
     return model
 
-_model_metadata_cache: Dict[str, Dict[str, Any]] = {}
+_model_metadata_cache: dict[str, dict[str, Any]] = {}
 _model_metadata_cache_time: float = 0
 _MODEL_CACHE_TTL = 3600
-_endpoint_model_metadata_cache: Dict[str, Dict[str, Dict[str, Any]]] = {}
-_endpoint_model_metadata_cache_time: Dict[str, float] = {}
+_endpoint_model_metadata_cache: dict[str, dict[str, dict[str, Any]]] = {}
+_endpoint_model_metadata_cache_time: dict[str, float] = {}
 _ENDPOINT_MODEL_CACHE_TTL = 300
 
 # Descending tiers for context length probing when the model is unknown.
@@ -205,7 +204,7 @@ def _is_custom_endpoint(base_url: str) -> bool:
     return bool(normalized) and not _is_openrouter_base_url(normalized)
 
 
-_URL_TO_PROVIDER: Dict[str, str] = {
+_URL_TO_PROVIDER: dict[str, str] = {
     "api.openai.com": "openai",
     "chatgpt.com": "openai",
     "api.anthropic.com": "anthropic",
@@ -231,7 +230,7 @@ _URL_TO_PROVIDER: Dict[str, str] = {
 }
 
 
-def _infer_provider_from_url(base_url: str) -> Optional[str]:
+def _infer_provider_from_url(base_url: str) -> str | None:
     """Infer the models.dev provider name from a base URL.
 
     This allows context length resolution via models.dev for custom endpoints
@@ -292,7 +291,7 @@ def is_local_endpoint(base_url: str) -> bool:
     return False
 
 
-def detect_local_server_type(base_url: str) -> Optional[str]:
+def detect_local_server_type(base_url: str) -> str | None:
     """Detect which local server is running at base_url by probing known endpoints.
 
     Returns one of: "ollama", "lm-studio", "vllm", "llamacpp", or None.
@@ -361,7 +360,7 @@ def _iter_nested_dicts(value: Any):
             yield from _iter_nested_dicts(item)
 
 
-def _coerce_reasonable_int(value: Any, minimum: int = 1024, maximum: int = 10_000_000) -> Optional[int]:
+def _coerce_reasonable_int(value: Any, minimum: int = 1024, maximum: int = 10_000_000) -> int | None:
     try:
         if isinstance(value, bool):
             return None
@@ -375,7 +374,7 @@ def _coerce_reasonable_int(value: Any, minimum: int = 1024, maximum: int = 10_00
     return None
 
 
-def _extract_first_int(payload: Dict[str, Any], keys: tuple[str, ...]) -> Optional[int]:
+def _extract_first_int(payload: dict[str, Any], keys: tuple[str, ...]) -> int | None:
     keyset = {key.lower() for key in keys}
     for mapping in _iter_nested_dicts(payload):
         for key, value in mapping.items():
@@ -387,15 +386,15 @@ def _extract_first_int(payload: Dict[str, Any], keys: tuple[str, ...]) -> Option
     return None
 
 
-def _extract_context_length(payload: Dict[str, Any]) -> Optional[int]:
+def _extract_context_length(payload: dict[str, Any]) -> int | None:
     return _extract_first_int(payload, _CONTEXT_LENGTH_KEYS)
 
 
-def _extract_max_completion_tokens(payload: Dict[str, Any]) -> Optional[int]:
+def _extract_max_completion_tokens(payload: dict[str, Any]) -> int | None:
     return _extract_first_int(payload, _MAX_COMPLETION_KEYS)
 
 
-def _extract_pricing(payload: Dict[str, Any]) -> Dict[str, Any]:
+def _extract_pricing(payload: dict[str, Any]) -> dict[str, Any]:
     alias_map = {
         "prompt": ("prompt", "input", "input_cost_per_token", "prompt_token_cost"),
         "completion": ("completion", "output", "output_cost_per_token", "completion_token_cost"),
@@ -407,7 +406,7 @@ def _extract_pricing(payload: Dict[str, Any]) -> Dict[str, Any]:
         normalized = {str(key).lower(): value for key, value in mapping.items()}
         if not any(any(alias in normalized for alias in aliases) for aliases in alias_map.values()):
             continue
-        pricing: Dict[str, Any] = {}
+        pricing: dict[str, Any] = {}
         for target, aliases in alias_map.items():
             for alias in aliases:
                 if alias in normalized and normalized[alias] not in (None, ""):
@@ -418,14 +417,14 @@ def _extract_pricing(payload: Dict[str, Any]) -> Dict[str, Any]:
     return {}
 
 
-def _add_model_aliases(cache: Dict[str, Dict[str, Any]], model_id: str, entry: Dict[str, Any]) -> None:
+def _add_model_aliases(cache: dict[str, dict[str, Any]], model_id: str, entry: dict[str, Any]) -> None:
     cache[model_id] = entry
     if "/" in model_id:
         bare_model = model_id.split("/", 1)[1]
         cache.setdefault(bare_model, entry)
 
 
-def fetch_model_metadata(force_refresh: bool = False) -> Dict[str, Dict[str, Any]]:
+def fetch_model_metadata(force_refresh: bool = False) -> dict[str, dict[str, Any]]:
     """Fetch model metadata from OpenRouter (cached for 1 hour)."""
     global _model_metadata_cache, _model_metadata_cache_time
 
@@ -465,7 +464,7 @@ def fetch_endpoint_model_metadata(
     base_url: str,
     api_key: str = "",
     force_refresh: bool = False,
-) -> Dict[str, Dict[str, Any]]:
+) -> dict[str, dict[str, Any]]:
     """Fetch model metadata from an OpenAI-compatible ``/models`` endpoint.
 
     This is used for explicit custom endpoints where hardcoded global model-name
@@ -490,7 +489,7 @@ def fetch_endpoint_model_metadata(
         candidates.append(alternate)
 
     headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
-    last_error: Optional[Exception] = None
+    last_error: Exception | None = None
 
     for candidate in candidates:
         url = candidate.rstrip("/") + "/models"
@@ -498,14 +497,14 @@ def fetch_endpoint_model_metadata(
             response = requests.get(url, headers=headers, timeout=10)
             response.raise_for_status()
             payload = response.json()
-            cache: Dict[str, Dict[str, Any]] = {}
+            cache: dict[str, dict[str, Any]] = {}
             for model in payload.get("data", []):
                 if not isinstance(model, dict):
                     continue
                 model_id = model.get("id")
                 if not model_id:
                     continue
-                entry: Dict[str, Any] = {"name": model.get("name", model_id)}
+                entry: dict[str, Any] = {"name": model.get("name", model_id)}
                 context_length = _extract_context_length(model)
                 if context_length is not None:
                     entry["context_length"] = context_length
@@ -558,7 +557,7 @@ def _get_context_cache_path() -> Path:
     return get_hermes_home() / "context_length_cache.yaml"
 
 
-def _load_context_cache() -> Dict[str, int]:
+def _load_context_cache() -> dict[str, int]:
     """Load the model+provider -> context_length cache from disk."""
     path = _get_context_cache_path()
     if not path.exists():
@@ -593,14 +592,14 @@ def save_context_length(model: str, base_url: str, length: int) -> None:
         logger.debug("Failed to save context length cache: %s", e)
 
 
-def get_cached_context_length(model: str, base_url: str) -> Optional[int]:
+def get_cached_context_length(model: str, base_url: str) -> int | None:
     """Look up a previously discovered context length for model+provider."""
     key = f"{model}@{base_url}"
     cache = _load_context_cache()
     return cache.get(key)
 
 
-def get_next_probe_tier(current_length: int) -> Optional[int]:
+def get_next_probe_tier(current_length: int) -> int | None:
     """Return the next lower probe tier, or None if already at minimum."""
     for tier in CONTEXT_PROBE_TIERS:
         if tier < current_length:
@@ -608,7 +607,7 @@ def get_next_probe_tier(current_length: int) -> Optional[int]:
     return None
 
 
-def parse_context_limit_from_error(error_msg: str) -> Optional[int]:
+def parse_context_limit_from_error(error_msg: str) -> int | None:
     """Try to extract the actual context limit from an API error message.
 
     Many providers include the limit in their error text, e.g.:
@@ -636,7 +635,7 @@ def parse_context_limit_from_error(error_msg: str) -> Optional[int]:
     return None
 
 
-def parse_available_output_tokens_from_error(error_msg: str) -> Optional[int]:
+def parse_available_output_tokens_from_error(error_msg: str) -> int | None:
     """Detect an "output cap too large" error and return how many output tokens are available.
 
     Background — two distinct context errors exist:
@@ -698,7 +697,7 @@ def _model_id_matches(candidate_id: str, lookup_model: str) -> bool:
     return False
 
 
-def query_ollama_num_ctx(model: str, base_url: str) -> Optional[int]:
+def query_ollama_num_ctx(model: str, base_url: str) -> int | None:
     """Query an Ollama server for the model's context length.
 
     Returns the model's maximum context from GGUF metadata via ``/api/show``,
@@ -751,7 +750,7 @@ def query_ollama_num_ctx(model: str, base_url: str) -> Optional[int]:
     return None
 
 
-def _query_local_context_length(model: str, base_url: str) -> Optional[int]:
+def _query_local_context_length(model: str, base_url: str) -> int | None:
     """Query a local server for the model's context length."""
     import httpx
 
@@ -856,7 +855,7 @@ def _normalize_model_version(model: str) -> str:
     return model.replace(".", "-")
 
 
-def _query_anthropic_context_length(model: str, base_url: str, api_key: str) -> Optional[int]:
+def _query_anthropic_context_length(model: str, base_url: str, api_key: str) -> int | None:
     """Query Anthropic's /v1/models endpoint for context length.
 
     Only works with regular ANTHROPIC_API_KEY (sk-ant-api*).
@@ -887,7 +886,7 @@ def _query_anthropic_context_length(model: str, base_url: str, api_key: str) -> 
     return None
 
 
-def _resolve_nous_context_length(model: str) -> Optional[int]:
+def _resolve_nous_context_length(model: str) -> int | None:
     """Resolve Nous Portal model context length via OpenRouter metadata.
 
     Nous model IDs are bare (e.g. 'claude-opus-4-6') while OpenRouter uses
@@ -1062,17 +1061,17 @@ def estimate_tokens_rough(text: str) -> int:
     return (len(text) + 3) // 4
 
 
-def estimate_messages_tokens_rough(messages: List[Dict[str, Any]]) -> int:
+def estimate_messages_tokens_rough(messages: list[dict[str, Any]]) -> int:
     """Rough token estimate for a message list (pre-flight only)."""
     total_chars = sum(len(str(msg)) for msg in messages)
     return (total_chars + 3) // 4
 
 
 def estimate_request_tokens_rough(
-    messages: List[Dict[str, Any]],
+    messages: list[dict[str, Any]],
     *,
     system_prompt: str = "",
-    tools: Optional[List[Dict[str, Any]]] = None,
+    tools: list[dict[str, Any]] | None = None,
 ) -> int:
     """Rough token estimate for a full chat-completions request.
 

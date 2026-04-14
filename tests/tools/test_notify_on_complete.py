@@ -10,11 +10,10 @@ Covers:
 
 import json
 import os
-import queue
 import time
+from unittest.mock import patch
+
 import pytest
-from pathlib import Path
-from unittest.mock import MagicMock, patch
 
 from tools.process_registry import (
     ProcessRegistry,

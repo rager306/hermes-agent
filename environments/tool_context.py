@@ -23,17 +23,16 @@ Example usage in a compute_reward():
         return 0.0
 """
 
+import asyncio
+import concurrent.futures
 import json
 import logging
 import os
-from typing import Any, Dict, List, Optional
-
-import asyncio
-import concurrent.futures
+from typing import Any
 
 from model_tools import handle_function_call
-from tools.terminal_tool import cleanup_vm
 from tools.browser_tool import cleanup_browser
+from tools.terminal_tool import cleanup_vm
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +40,7 @@ logger = logging.getLogger(__name__)
 _tool_executor = concurrent.futures.ThreadPoolExecutor(max_workers=4)
 
 
-def _run_tool_in_thread(tool_name: str, arguments: Dict[str, Any], task_id: str) -> str:
+def _run_tool_in_thread(tool_name: str, arguments: dict[str, Any], task_id: str) -> str:
     """
     Run a tool call in a thread pool executor so backends that use asyncio.run()
     internally (modal, docker, daytona) get a clean event loop.
@@ -51,7 +50,7 @@ def _run_tool_in_thread(tool_name: str, arguments: Dict[str, Any], task_id: str)
     If not (e.g., called from sync code), runs directly.
     """
     try:
-        loop = asyncio.get_running_loop()
+        asyncio.get_running_loop()
         # We're in an async context -- need to run in thread
         import concurrent.futures
         with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
@@ -80,7 +79,7 @@ class ToolContext:
     # Terminal tools
     # -------------------------------------------------------------------------
 
-    def terminal(self, command: str, timeout: int = 180) -> Dict[str, Any]:
+    def terminal(self, command: str, timeout: int = 180) -> dict[str, Any]:
         """
         Run a command in the rollout's terminal session.
 
@@ -110,7 +109,7 @@ class ToolContext:
     # File tools
     # -------------------------------------------------------------------------
 
-    def read_file(self, path: str) -> Dict[str, Any]:
+    def read_file(self, path: str) -> dict[str, Any]:
         """
         Read a file from the rollout's filesystem.
 
@@ -128,7 +127,7 @@ class ToolContext:
         except json.JSONDecodeError:
             return {"error": result}
 
-    def write_file(self, path: str, content: str) -> Dict[str, Any]:
+    def write_file(self, path: str, content: str) -> dict[str, Any]:
         """
         Write a TEXT file in the rollout's filesystem.
 
@@ -150,7 +149,7 @@ class ToolContext:
         except json.JSONDecodeError:
             return {"error": result}
 
-    def upload_file(self, local_path: str, remote_path: str) -> Dict[str, Any]:
+    def upload_file(self, local_path: str, remote_path: str) -> dict[str, Any]:
         """
         Upload a local file to the rollout's sandbox (binary-safe).
 
@@ -204,7 +203,7 @@ class ToolContext:
 
         return result
 
-    def upload_dir(self, local_dir: str, remote_dir: str) -> List[Dict[str, Any]]:
+    def upload_dir(self, local_dir: str, remote_dir: str) -> list[dict[str, Any]]:
         """
         Upload an entire local directory to the rollout's sandbox (binary-safe).
 
@@ -231,7 +230,7 @@ class ToolContext:
                 results.append(self.upload_file(str(file_path), target))
         return results
 
-    def download_file(self, remote_path: str, local_path: str) -> Dict[str, Any]:
+    def download_file(self, remote_path: str, local_path: str) -> dict[str, Any]:
         """
         Download a file from the rollout's sandbox to the host (binary-safe).
 
@@ -277,7 +276,7 @@ class ToolContext:
 
         return {"success": True, "bytes": len(raw)}
 
-    def download_dir(self, remote_dir: str, local_dir: str) -> List[Dict[str, Any]]:
+    def download_dir(self, remote_dir: str, local_dir: str) -> list[dict[str, Any]]:
         """
         Download a directory from the rollout's sandbox to the host (binary-safe).
 
@@ -321,7 +320,7 @@ class ToolContext:
 
         return results
 
-    def search(self, query: str, path: str = ".") -> Dict[str, Any]:
+    def search(self, query: str, path: str = ".") -> dict[str, Any]:
         """
         Search for text in the rollout's filesystem.
 
@@ -344,7 +343,7 @@ class ToolContext:
     # Web tools
     # -------------------------------------------------------------------------
 
-    def web_search(self, query: str) -> Dict[str, Any]:
+    def web_search(self, query: str) -> dict[str, Any]:
         """
         Search the web.
 
@@ -360,7 +359,7 @@ class ToolContext:
         except json.JSONDecodeError:
             return {"error": result}
 
-    def web_extract(self, urls: List[str]) -> Dict[str, Any]:
+    def web_extract(self, urls: list[str]) -> dict[str, Any]:
         """
         Extract content from URLs.
 
@@ -380,7 +379,7 @@ class ToolContext:
     # Browser tools
     # -------------------------------------------------------------------------
 
-    def browser_navigate(self, url: str) -> Dict[str, Any]:
+    def browser_navigate(self, url: str) -> dict[str, Any]:
         """
         Navigate the rollout's browser session to a URL.
 
@@ -398,7 +397,7 @@ class ToolContext:
         except json.JSONDecodeError:
             return {"error": result}
 
-    def browser_snapshot(self) -> Dict[str, Any]:
+    def browser_snapshot(self) -> dict[str, Any]:
         """
         Take a snapshot of the current browser page.
 
@@ -417,7 +416,7 @@ class ToolContext:
     # Generic tool access
     # -------------------------------------------------------------------------
 
-    def call_tool(self, tool_name: str, arguments: Dict[str, Any]) -> str:
+    def call_tool(self, tool_name: str, arguments: dict[str, Any]) -> str:
         """
         Call any hermes-agent tool by name.
 

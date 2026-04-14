@@ -1,21 +1,15 @@
 """Tests for hermes_cli.web_server and related config utilities."""
 
 import os
-import json
-import tempfile
-from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 import pytest
 
 from hermes_cli.config import (
-    DEFAULT_CONFIG,
-    reload_env,
-    redact_key,
-    _EXTRA_ENV_KEYS,
     OPTIONAL_ENV_VARS,
+    redact_key,
+    reload_env,
 )
-
 
 # ---------------------------------------------------------------------------
 # reload_env tests
@@ -337,8 +331,9 @@ class TestBuildSchemaFromConfig:
 
     def test_no_single_field_categories(self):
         """After merging, no category should have just 1 field."""
-        from hermes_cli.web_server import CONFIG_SCHEMA
         from collections import Counter
+
+        from hermes_cli.web_server import CONFIG_SCHEMA
         cats = Counter(e["category"] for e in CONFIG_SCHEMA.values())
         for cat, count in cats.items():
             assert count >= 2, f"Category '{cat}' has only {count} field(s) — should be merged"
@@ -473,7 +468,7 @@ class TestConfigRoundTrip:
                 mismatches.append(f"{key}: expected bool, got {type(val).__name__}")
             elif expected == "list" and not isinstance(val, list):
                 mismatches.append(f"{key}: expected list, got {type(val).__name__}")
-        assert not mismatches, f"Type mismatches:\n" + "\n".join(mismatches)
+        assert not mismatches, "Type mismatches:\n" + "\n".join(mismatches)
 
 
 # ---------------------------------------------------------------------------
@@ -524,9 +519,9 @@ class TestNewEndpoints:
             assert "enabled" in skills[0]
 
     def test_skills_list_includes_disabled_skills(self, monkeypatch):
-        import tools.skills_tool as skills_tool
         import hermes_cli.skills_config as skills_config
         import hermes_cli.web_server as web_server
+        import tools.skills_tool as skills_tool
 
         def _fake_find_all_skills(*, skip_disabled=False):
             if skip_disabled:
@@ -572,8 +567,8 @@ class TestNewEndpoints:
 
     def test_toolsets_list_matches_cli_enabled_state(self, monkeypatch):
         import hermes_cli.tools_config as tools_config
-        import toolsets as toolsets_module
         import hermes_cli.web_server as web_server
+        import toolsets as toolsets_module
 
         monkeypatch.setattr(
             tools_config,

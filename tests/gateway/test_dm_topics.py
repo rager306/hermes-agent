@@ -9,12 +9,11 @@ Covers:
 - _build_message_event: DM topic resolution in message events
 """
 
-import asyncio
 import os
 import sys
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, MagicMock, patch, mock_open
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -39,7 +38,7 @@ def _ensure_telegram_mock():
 
 _ensure_telegram_mock()
 
-from gateway.platforms.telegram import TelegramAdapter  # noqa: E402
+from gateway.platforms.telegram import TelegramAdapter
 
 
 def _make_adapter(dm_topics_config=None, group_topics_config=None):
@@ -495,7 +494,7 @@ def test_build_message_event_no_auto_skill_without_thread():
 # so `from telegram.constants import ChatType` in telegram.py resolves to
 # telegram_mod.ChatType — not telegram_mod.constants.ChatType.  We must use
 # the same ChatType object the production code sees so equality checks work.
-from telegram.constants import ChatType as _ChatType  # noqa: E402
+from telegram.constants import ChatType as _ChatType
 
 
 def test_group_topic_skill_binding():

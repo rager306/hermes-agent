@@ -5,8 +5,7 @@ import json
 import os
 from unittest.mock import AsyncMock, patch
 
-from gateway.config import PlatformConfig
-from gateway.config import GatewayConfig, HomeChannel, Platform, _apply_env_overrides
+from gateway.config import GatewayConfig, HomeChannel, Platform, PlatformConfig, _apply_env_overrides
 from gateway.platforms import weixin
 from gateway.platforms.weixin import ContextTokenStore, WeixinAdapter
 from tools.send_message_tool import _parse_target_ref, _send_to_platform
@@ -518,5 +517,5 @@ class TestWeixinMediaBuilder:
 
     def test_voice_builder_for_silk_files(self):
         adapter = _make_adapter()
-        media_type, builder = adapter._outbound_media_builder("recording.silk")
+        media_type, _builder = adapter._outbound_media_builder("recording.silk")
         assert media_type == weixin.MEDIA_VOICE

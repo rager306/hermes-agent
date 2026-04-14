@@ -15,14 +15,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from gateway.config import Platform, PlatformConfig
+from gateway.config import PlatformConfig
 from gateway.platforms.base import (
-    MessageEvent,
     MessageType,
-    SendResult,
-    SUPPORTED_DOCUMENT_TYPES,
 )
-
 
 # ---------------------------------------------------------------------------
 # Mock the slack-bolt package if it's not installed
@@ -57,10 +53,10 @@ _ensure_slack_mock()
 
 # Patch SLACK_AVAILABLE before importing the adapter
 import gateway.platforms.slack as _slack_mod
+
 _slack_mod.SLACK_AVAILABLE = True
 
-from gateway.platforms.slack import SlackAdapter  # noqa: E402
-
+from gateway.platforms.slack import SlackAdapter
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -224,7 +220,7 @@ class TestSendDocument:
         )
 
         # Should fall back to base class (text message)
-        result = await adapter.send_document(
+        await adapter.send_document(
             chat_id="C123",
             file_path=str(test_file),
         )
@@ -304,7 +300,7 @@ class TestSendVideo:
         )
 
         # Should fall back to base class (text message)
-        result = await adapter.send_video(
+        await adapter.send_video(
             chat_id="C123",
             video_path=str(video),
         )
@@ -1715,7 +1711,7 @@ class TestProgressMessageThread:
             "channel": "C_CHAN",
             "channel_type": "channel",
             "user": "U_USER",
-            "text": f"<@U_BOT> help me",
+            "text": "<@U_BOT> help me",
             "ts": "2000000000.000001",
             # No thread_ts — top-level channel message
         }

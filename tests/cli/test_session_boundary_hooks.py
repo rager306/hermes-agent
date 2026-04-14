@@ -1,10 +1,7 @@
-import pytest
 from unittest.mock import MagicMock, patch
-from hermes_cli.plugins import VALID_HOOKS, PluginManager
-import os
-import shutil
-import tempfile
+
 from cli import HermesCLI
+from hermes_cli.plugins import VALID_HOOKS, PluginManager
 
 
 def test_session_hooks_in_valid_hooks():

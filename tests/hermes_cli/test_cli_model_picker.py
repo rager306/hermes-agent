@@ -185,7 +185,6 @@ def test_should_handle_model_command_inline_uses_command_name_resolution():
 
 
 def test_process_command_model_without_args_opens_modal_picker_and_captures_draft():
-    from cli import HermesCLI
 
     cli = _make_modal_cli()
     providers = _make_providers()

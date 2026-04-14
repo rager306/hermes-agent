@@ -1,6 +1,5 @@
 """Tests for tools.env_passthrough — skill and config env var passthrough."""
 
-import os
 import pytest
 import yaml
 
@@ -163,7 +162,7 @@ class TestTerminalIntegration:
     """Verify that the passthrough is checked in terminal's env sanitizers."""
 
     def test_blocklisted_var_blocked_by_default(self):
-        from tools.environments.local import _sanitize_subprocess_env, _HERMES_PROVIDER_ENV_BLOCKLIST
+        from tools.environments.local import _HERMES_PROVIDER_ENV_BLOCKLIST, _sanitize_subprocess_env
 
         # Pick a var we know is in the blocklist
         blocked_var = next(iter(_HERMES_PROVIDER_ENV_BLOCKLIST))
@@ -173,7 +172,7 @@ class TestTerminalIntegration:
         assert "PATH" in result
 
     def test_passthrough_allows_blocklisted_var(self):
-        from tools.environments.local import _sanitize_subprocess_env, _HERMES_PROVIDER_ENV_BLOCKLIST
+        from tools.environments.local import _HERMES_PROVIDER_ENV_BLOCKLIST, _sanitize_subprocess_env
 
         blocked_var = next(iter(_HERMES_PROVIDER_ENV_BLOCKLIST))
         register_env_passthrough([blocked_var])
@@ -184,7 +183,7 @@ class TestTerminalIntegration:
         assert result[blocked_var] == "secret_value"
 
     def test_make_run_env_passthrough(self, monkeypatch):
-        from tools.environments.local import _make_run_env, _HERMES_PROVIDER_ENV_BLOCKLIST
+        from tools.environments.local import _HERMES_PROVIDER_ENV_BLOCKLIST, _make_run_env
 
         blocked_var = next(iter(_HERMES_PROVIDER_ENV_BLOCKLIST))
         monkeypatch.setenv(blocked_var, "secret_value")

@@ -15,8 +15,9 @@ import threading
 import time
 import uuid
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from pathlib import Path
-from typing import IO, Callable, Protocol
+from typing import IO, Protocol
 
 from hermes_constants import get_hermes_home
 from tools.interrupt import is_interrupted
@@ -246,7 +247,7 @@ class BaseEnvironment(ABC):
         """
         return "/tmp"
 
-    def __init__(self, cwd: str, timeout: int, env: dict = None):
+    def __init__(self, cwd: str, timeout: int, env: dict | None = None):
         self.cwd = cwd
         self.timeout = timeout
         self.env = env or {}

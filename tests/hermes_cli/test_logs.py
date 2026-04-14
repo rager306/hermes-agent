@@ -1,10 +1,6 @@
 """Tests for hermes_cli.logs — log viewing and filtering."""
 
-import os
 from datetime import datetime, timedelta
-from pathlib import Path
-
-import pytest
 
 from hermes_cli.logs import (
     LOG_FILES,
@@ -17,7 +13,6 @@ from hermes_cli.logs import (
     _read_last_n_lines,
     _read_tail,
 )
-
 
 # ---------------------------------------------------------------------------
 # Timestamp parsing

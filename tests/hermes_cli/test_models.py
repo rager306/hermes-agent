@@ -1,14 +1,21 @@
 """Tests for the hermes_cli models module."""
 
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
-from hermes_cli.models import (
-    OPENROUTER_MODELS, fetch_openrouter_models, menu_labels, model_ids, detect_provider_for_model,
-    filter_nous_free_models, _NOUS_ALLOWED_FREE_MODELS,
-    is_nous_free_tier, partition_nous_models_by_tier,
-    check_nous_free_tier, _FREE_TIER_CACHE_TTL,
-)
 import hermes_cli.models as _models_mod
+from hermes_cli.models import (
+    _FREE_TIER_CACHE_TTL,
+    _NOUS_ALLOWED_FREE_MODELS,
+    OPENROUTER_MODELS,
+    check_nous_free_tier,
+    detect_provider_for_model,
+    fetch_openrouter_models,
+    filter_nous_free_models,
+    is_nous_free_tier,
+    menu_labels,
+    model_ids,
+    partition_nous_models_by_tier,
+)
 
 LIVE_OPENROUTER_MODELS = [
     ("anthropic/claude-opus-4.6", "recommended"),
@@ -55,7 +62,7 @@ class TestMenuLabels:
 
     def test_each_label_contains_its_model_id(self):
         with patch("hermes_cli.models.fetch_openrouter_models", return_value=LIVE_OPENROUTER_MODELS):
-            for label, mid in zip(menu_labels(), model_ids()):
+            for label, mid in zip(menu_labels(), model_ids(), strict=False):
                 assert mid in label, f"Label '{label}' doesn't contain model ID '{mid}'"
 
     def test_non_recommended_labels_have_no_tag(self):
@@ -198,7 +205,7 @@ class TestFilterNousFreeModels:
     def test_paid_models_kept(self):
         """Regular paid models pass through unchanged."""
         models = ["anthropic/claude-opus-4.6", "openai/gpt-5.4"]
-        pricing = {m: self._PAID for m in models}
+        pricing = dict.fromkeys(models, self._PAID)
         assert filter_nous_free_models(models, pricing) == models
 
     def test_free_non_allowlist_models_removed(self):
@@ -338,7 +345,7 @@ class TestPartitionNousModelsByTier:
     def test_all_free_models(self):
         """When all models are free, free-tier users can select all."""
         models = ["xiaomi/mimo-v2-pro", "xiaomi/mimo-v2-omni"]
-        pricing = {m: self._FREE for m in models}
+        pricing = dict.fromkeys(models, self._FREE)
         sel, unav = partition_nous_models_by_tier(models, pricing, free_tier=True)
         assert sel == models
         assert unav == []
@@ -346,7 +353,7 @@ class TestPartitionNousModelsByTier:
     def test_all_paid_models(self):
         """When all models are paid, free-tier users have none selectable."""
         models = ["anthropic/claude-opus-4.6", "openai/gpt-5.4"]
-        pricing = {m: self._PAID for m in models}
+        pricing = dict.fromkeys(models, self._PAID)
         sel, unav = partition_nous_models_by_tier(models, pricing, free_tier=True)
         assert sel == []
         assert unav == models

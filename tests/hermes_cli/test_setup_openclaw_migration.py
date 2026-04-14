@@ -6,7 +6,6 @@ from unittest.mock import MagicMock, patch
 
 from hermes_cli import setup as setup_mod
 
-
 # ---------------------------------------------------------------------------
 # _offer_openclaw_migration — unit tests
 # ---------------------------------------------------------------------------

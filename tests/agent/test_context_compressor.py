@@ -1,9 +1,10 @@
 """Tests for agent/context_compressor.py — compression logic, thresholds, truncation fallback."""
 
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
-from agent.context_compressor import ContextCompressor, SUMMARY_PREFIX
+import pytest
+
+from agent.context_compressor import SUMMARY_PREFIX, ContextCompressor
 
 
 @pytest.fixture()
@@ -66,7 +67,7 @@ class TestCompress:
 
     def test_truncation_fallback_no_client(self, compressor):
         # compressor has client=None, so should use truncation fallback
-        msgs = [{"role": "system", "content": "System prompt"}] + self._make_messages(10)
+        msgs = [{"role": "system", "content": "System prompt"}, *self._make_messages(10)]
         result = compressor.compress(msgs)
         assert len(result) < len(msgs)
         # Should keep system message and last N
@@ -757,7 +758,7 @@ class TestTokenBudgetTailProtection:
             {"role": "assistant", "content": "short reply"},
         ]
         # With a 1000-token budget, only the last couple messages should be protected
-        result, pruned = c._prune_old_tool_results(
+        _result, pruned = c._prune_old_tool_results(
             messages, protect_tail_count=2, protect_tail_tokens=1000,
         )
         # At least one old tool result should have been pruned
@@ -775,7 +776,7 @@ class TestTokenBudgetTailProtection:
             {"role": "assistant", "content": "reply"},
         ]
         # protect_tail_count=3 means last 3 messages protected
-        result, pruned = c._prune_old_tool_results(
+        _result, pruned = c._prune_old_tool_results(
             messages, protect_tail_count=3,
         )
         # Tool at index 2 is outside the protected tail (last 3 = indices 2,3,4)

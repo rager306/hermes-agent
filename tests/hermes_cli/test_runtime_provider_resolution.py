@@ -1267,8 +1267,9 @@ def test_auto_detected_codex_auth_failure_falls_through_to_openrouter(monkeypatc
 
 def test_explicit_nous_auth_failure_still_raises(monkeypatch):
     """When user explicitly requests Nous and auth fails, the error should propagate."""
-    from hermes_cli.auth import AuthError
     import pytest
+
+    from hermes_cli.auth import AuthError
 
     monkeypatch.setenv("OPENROUTER_API_KEY", "test-or-key")
     monkeypatch.setattr(rp, "load_config", lambda: {})

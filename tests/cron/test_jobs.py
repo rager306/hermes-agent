@@ -1,30 +1,27 @@
 """Tests for cron/jobs.py — schedule parsing, job CRUD, and due-job detection."""
 
-import json
+from datetime import UTC, datetime, timedelta
+
 import pytest
-from datetime import datetime, timedelta, timezone
-from pathlib import Path
-from unittest.mock import patch
 
 from cron.jobs import (
-    parse_duration,
-    parse_schedule,
+    advance_next_run,
     compute_next_run,
     create_job,
-    load_jobs,
-    save_jobs,
+    get_due_jobs,
     get_job,
     list_jobs,
-    update_job,
-    pause_job,
-    resume_job,
-    remove_job,
+    load_jobs,
     mark_job_run,
-    advance_next_run,
-    get_due_jobs,
+    parse_duration,
+    parse_schedule,
+    pause_job,
+    remove_job,
+    resume_job,
     save_job_output,
+    save_jobs,
+    update_job,
 )
-
 
 # =========================================================================
 # parse_duration
@@ -124,7 +121,7 @@ class TestComputeNextRun:
         assert compute_next_run(schedule) == future
 
     def test_once_recent_past_within_grace_returns_time(self, monkeypatch):
-        now = datetime(2026, 3, 18, 4, 22, 3, tzinfo=timezone.utc)
+        now = datetime(2026, 3, 18, 4, 22, 3, tzinfo=UTC)
         run_at = "2026-03-18T04:22:00+00:00"
         monkeypatch.setattr("cron.jobs._hermes_now", lambda: now)
 
@@ -138,7 +135,7 @@ class TestComputeNextRun:
         assert compute_next_run(schedule) is None
 
     def test_once_with_last_run_returns_none_even_within_grace(self, monkeypatch):
-        now = datetime(2026, 3, 18, 4, 22, 3, tzinfo=timezone.utc)
+        now = datetime(2026, 3, 18, 4, 22, 3, tzinfo=UTC)
         run_at = "2026-03-18T04:22:00+00:00"
         monkeypatch.setattr("cron.jobs._hermes_now", lambda: now)
 
@@ -495,7 +492,7 @@ class TestGetDueJobs:
         assert len(due) == 0
 
     def test_disabled_not_returned(self, tmp_cron_dir):
-        job = create_job(prompt="Disabled", schedule="every 1h")
+        create_job(prompt="Disabled", schedule="every 1h")
         jobs = load_jobs()
         jobs[0]["enabled"] = False
         jobs[0]["next_run_at"] = (datetime.now() - timedelta(minutes=5)).isoformat()
@@ -505,7 +502,7 @@ class TestGetDueJobs:
         assert len(due) == 0
 
     def test_broken_recent_one_shot_without_next_run_is_recovered(self, tmp_cron_dir, monkeypatch):
-        now = datetime(2026, 3, 18, 4, 22, 30, tzinfo=timezone.utc)
+        now = datetime(2026, 3, 18, 4, 22, 30, tzinfo=UTC)
         monkeypatch.setattr("cron.jobs._hermes_now", lambda: now)
 
         run_at = "2026-03-18T04:22:00+00:00"
@@ -537,7 +534,7 @@ class TestGetDueJobs:
         assert get_job("oneshot-recover")["next_run_at"] == run_at
 
     def test_broken_stale_one_shot_without_next_run_is_not_recovered(self, tmp_cron_dir, monkeypatch):
-        now = datetime(2026, 3, 18, 4, 30, 0, tzinfo=timezone.utc)
+        now = datetime(2026, 3, 18, 4, 30, 0, tzinfo=UTC)
         monkeypatch.setattr("cron.jobs._hermes_now", lambda: now)
 
         save_jobs(

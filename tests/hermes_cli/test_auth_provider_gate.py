@@ -1,8 +1,6 @@
 """Tests for is_provider_explicitly_configured()."""
 
 import json
-import os
-import pytest
 
 
 def _write_config(tmp_path, config: dict) -> None:

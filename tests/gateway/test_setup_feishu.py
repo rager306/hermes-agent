@@ -7,7 +7,6 @@ Feishu adapter: credentials, connection mode, DM policy, and group policy.
 import os
 from unittest.mock import patch
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -261,8 +260,8 @@ class TestSetupFeishuAdapterIntegration:
         env = self._make_env_from_setup(dm_idx=1)
 
         with patch.dict(os.environ, env, clear=True):
-            from gateway.platforms.feishu import FeishuAdapter
             from gateway.config import PlatformConfig
+            from gateway.platforms.feishu import FeishuAdapter
             # Verify adapter initializes without error and env var is correct.
             FeishuAdapter(PlatformConfig())
             assert os.getenv("FEISHU_ALLOW_ALL_USERS") == "true"

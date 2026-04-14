@@ -13,29 +13,29 @@ import queue
 import subprocess
 import sys
 from pathlib import Path
-from unittest.mock import patch, MagicMock, PropertyMock, mock_open
+from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
 
+from cli import _should_auto_attach_clipboard_image_on_paste
 from hermes_cli.clipboard import (
-    save_clipboard_image,
-    has_clipboard_image,
+    _convert_to_png,
     _is_wsl,
     _linux_save,
-    _macos_pngpaste,
-    _macos_osascript,
     _macos_has_image,
-    _xclip_save,
-    _xclip_has_image,
-    _wsl_save,
-    _wsl_has_image,
-    _wayland_save,
+    _macos_osascript,
+    _macos_pngpaste,
     _wayland_has_image,
-    _windows_save,
+    _wayland_save,
     _windows_has_image,
-    _convert_to_png,
+    _windows_save,
+    _wsl_has_image,
+    _wsl_save,
+    _xclip_has_image,
+    _xclip_save,
+    has_clipboard_image,
+    save_clipboard_image,
 )
-from cli import _should_auto_attach_clipboard_image_on_paste
 
 FAKE_PNG = b"\x89PNG\r\n\x1a\n" + b"\x00" * 100
 FAKE_BMP = b"BM" + b"\x00" * 100
@@ -229,7 +229,6 @@ class TestIsWsl:
             assert _is_wsl() is False
 
     def test_result_is_cached(self):
-        import hermes_constants
         content = "Linux version 5.15.0 (microsoft-standard-WSL2)"
         with patch("builtins.open", mock_open(read_data=content)) as m:
             assert _is_wsl() is True
@@ -633,8 +632,6 @@ class TestConvertToPng:
         with patch.dict(sys.modules, {"PIL": None, "PIL.Image": None}):
             with patch("hermes_cli.clipboard.subprocess.run", side_effect=fake_run):
                 # Force ImportError for Pillow
-                import hermes_cli.clipboard as cb
-                original = cb._convert_to_png
 
                 def patched_convert(path):
                     # Skip Pillow, go straight to ImageMagick
@@ -1007,9 +1004,8 @@ class TestQueueRouting:
     def test_command_with_images_not_treated_as_command(self):
         """Text starting with / in a tuple should still be a command."""
         user_input = "/help"
-        submit_images = []
         if isinstance(user_input, tuple):
-            user_input, submit_images = user_input
+            user_input, _submit_images = user_input
         is_command = isinstance(user_input, str) and user_input.startswith("/")
         assert is_command is True
 

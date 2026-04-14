@@ -37,7 +37,6 @@ Inspired by: GroceryMind — production Hermes agent doing live web research
 
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
 import os
@@ -45,7 +44,7 @@ import random
 import re
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 from urllib.parse import urlparse
 
 from pydantic import Field
@@ -64,12 +63,10 @@ try:
 except ImportError:
     HF_AVAILABLE = False
 
-from atroposlib.envs.base import ScoredDataGroup
 from atroposlib.envs.server_handling.server_manager import APIServerConfig
-from atroposlib.type_definitions import Item
 
-from environments.hermes_base_env import HermesAgentBaseEnv, HermesAgentEnvConfig
 from environments.agent_loop import AgentResult
+from environments.hermes_base_env import HermesAgentBaseEnv, HermesAgentEnvConfig
 from environments.tool_context import ToolContext
 
 logger = logging.getLogger(__name__)
@@ -220,7 +217,7 @@ class WebResearchEnv(HermesAgentBaseEnv):
     default_toolsets = ["web", "file"]
 
     @classmethod
-    def config_init(cls) -> Tuple[WebResearchEnvConfig, List[APIServerConfig]]:
+    def config_init(cls) -> tuple[WebResearchEnvConfig, list[APIServerConfig]]:
         """Default configuration for the web research environment."""
         env_config = WebResearchEnvConfig(
             enabled_toolsets=["web", "file"],
@@ -433,6 +430,7 @@ class WebResearchEnv(HermesAgentBaseEnv):
         """
         import time
         import uuid
+
         from environments.agent_loop import HermesAgentLoop
         from environments.tool_context import ToolContext
 
@@ -457,7 +455,7 @@ class WebResearchEnv(HermesAgentBaseEnv):
 
             try:
                 # Build messages
-                messages: List[Dict[str, Any]] = []
+                messages: list[dict[str, Any]] = []
                 if self.config.system_prompt:
                     messages.append({"role": "system", "content": self.config.system_prompt})
                 messages.append({"role": "user", "content": self.format_prompt(item)})
@@ -572,7 +570,7 @@ class WebResearchEnv(HermesAgentBaseEnv):
     # 6. wandb_log — custom metrics
     # ------------------------------------------------------------------
 
-    async def wandb_log(self, wandb_metrics: Optional[Dict] = None) -> None:
+    async def wandb_log(self, wandb_metrics: dict | None = None) -> None:
         """Log reward breakdown metrics to wandb."""
         if wandb_metrics is None:
             wandb_metrics = {}
@@ -653,7 +651,7 @@ class WebResearchEnv(HermesAgentBaseEnv):
         return self._heuristic_score(expected, model_answer)
 
     @staticmethod
-    def _parse_judge_json(text: str) -> Optional[float]:
+    def _parse_judge_json(text: str) -> float | None:
         """Extract the score float from LLM judge JSON response."""
         try:
             clean = re.sub(r"```(?:json)?|```", "", text).strip()

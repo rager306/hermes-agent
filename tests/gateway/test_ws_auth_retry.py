@@ -9,9 +9,6 @@ of stopping. These tests verify that auth errors now stop the reconnect.
 import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
-
-
 # ---------------------------------------------------------------------------
 # Mattermost: _ws_loop auth-aware retry
 # ---------------------------------------------------------------------------

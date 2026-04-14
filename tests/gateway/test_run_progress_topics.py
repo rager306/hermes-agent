@@ -256,6 +256,7 @@ def _run_long_preview_helper(monkeypatch, tmp_path, preview_length=0):
     that _run_agent reads — so the gateway picks it up the same way production does.
     """
     import asyncio
+
     import yaml
 
     monkeypatch.setenv("HERMES_TOOL_PROGRESS_MODE", "all")
@@ -488,7 +489,7 @@ async def test_run_agent_surfaces_real_interim_commentary(monkeypatch, tmp_path)
 
 @pytest.mark.asyncio
 async def test_run_agent_surfaces_interim_commentary_by_default(monkeypatch, tmp_path):
-    adapter, result = await _run_with_agent(
+    adapter, _result = await _run_with_agent(
         monkeypatch,
         tmp_path,
         CommentaryAgent,

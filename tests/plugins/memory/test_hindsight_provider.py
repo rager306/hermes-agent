@@ -6,20 +6,18 @@ turn counting, tags), and schema completeness.
 """
 
 import json
-import threading
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
 from plugins.memory.hindsight import (
-    HindsightMemoryProvider,
     RECALL_SCHEMA,
     REFLECT_SCHEMA,
     RETAIN_SCHEMA,
+    HindsightMemoryProvider,
     _load_config,
 )
-
 
 # ---------------------------------------------------------------------------
 # Fixtures

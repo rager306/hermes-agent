@@ -20,10 +20,8 @@ Both ``code_execution_tool.py`` and ``tools/environments/local.py`` consult
 from __future__ import annotations
 
 import logging
-import os
+from collections.abc import Iterable
 from contextvars import ContextVar
-from pathlib import Path
-from typing import Iterable
 
 logger = logging.getLogger(__name__)
 

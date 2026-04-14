@@ -6,12 +6,10 @@ must NOT be mangled to hyphens (minimax-m2-7).
 import pytest
 
 from hermes_cli.model_normalize import (
-    normalize_model_for_provider,
     _DOT_TO_HYPHEN_PROVIDERS,
-    _AGGREGATOR_PROVIDERS,
     detect_vendor,
+    normalize_model_for_provider,
 )
-
 
 # ── Regression: issue #5211 ────────────────────────────────────────────
 

@@ -10,10 +10,8 @@ Cache location: ~/.hermes/sticker_cache.json
 
 import json
 import time
-from typing import Optional
 
 from hermes_cli.config import get_hermes_home
-
 
 CACHE_PATH = get_hermes_home() / "sticker_cache.json"
 
@@ -43,7 +41,7 @@ def _save_cache(cache: dict) -> None:
     )
 
 
-def get_cached_description(file_unique_id: str) -> Optional[dict]:
+def get_cached_description(file_unique_id: str) -> dict | None:
     """
     Look up a cached sticker description.
 

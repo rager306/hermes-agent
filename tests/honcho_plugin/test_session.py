@@ -4,12 +4,11 @@ from datetime import datetime
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
+from plugins.memory.honcho import HonchoMemoryProvider
 from plugins.memory.honcho.session import (
     HonchoSession,
     HonchoSessionManager,
 )
-from plugins.memory.honcho import HonchoMemoryProvider
-
 
 # ---------------------------------------------------------------------------
 # HonchoSession dataclass
@@ -299,7 +298,7 @@ class TestToolsModeInitBehavior:
         provider = HonchoMemoryProvider()
 
         # Patch the config loading and session init to avoid real Honcho calls
-        from unittest.mock import patch, MagicMock
+        from unittest.mock import MagicMock, patch
 
         mock_manager = MagicMock()
         mock_session = MagicMock()

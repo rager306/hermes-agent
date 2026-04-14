@@ -1,20 +1,17 @@
 """Tests for gateway/pairing.py — DM pairing security system."""
 
 import json
-import os
 import time
-from pathlib import Path
 from unittest.mock import patch
 
 from gateway.pairing import (
-    PairingStore,
     ALPHABET,
     CODE_LENGTH,
     CODE_TTL_SECONDS,
-    RATE_LIMIT_SECONDS,
-    MAX_PENDING_PER_PLATFORM,
     MAX_FAILED_ATTEMPTS,
-    LOCKOUT_SECONDS,
+    MAX_PENDING_PER_PLATFORM,
+    RATE_LIMIT_SECONDS,
+    PairingStore,
     _secure_write,
 )
 

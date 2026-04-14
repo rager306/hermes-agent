@@ -104,7 +104,7 @@ class TestParserCompatibility:
 
         parser = get_parser("hermes")
         text = '<tool_call>{"name": "terminal", "arguments": {"command": "ls"}}</tool_call>'
-        content, tool_calls = parser.parse(text)
+        _content, tool_calls = parser.parse(text)
 
         assert tool_calls is not None
         assert len(tool_calls) == 1
@@ -121,7 +121,7 @@ class TestParserCompatibility:
         from environments.tool_call_parsers import get_parser
 
         parser = get_parser("hermes")
-        content, tool_calls = parser.parse("Just text, no tools")
+        _content, tool_calls = parser.parse("Just text, no tools")
         assert tool_calls is None
 
     def test_parser_content_is_string_or_none(self):

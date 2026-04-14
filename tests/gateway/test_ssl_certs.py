@@ -1,8 +1,7 @@
 """Tests for SSL certificate auto-detection in gateway/run.py."""
 
-import importlib
 import os
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 
 def _load_ensure_ssl():
@@ -11,8 +10,8 @@ def _load_ensure_ssl():
     # We can test via the actual module since conftest isolates HERMES_HOME,
     # but we need to be careful about side effects.  Instead, replicate the
     # logic in a controlled way.
+    import textwrap
     from types import ModuleType
-    import textwrap, ssl as _ssl  # noqa: F401
 
     code = textwrap.dedent("""\
     import os, ssl

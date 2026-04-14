@@ -16,9 +16,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from gateway.config import PlatformConfig, Platform
-from gateway.platforms.base import SendResult
-
+from gateway.config import Platform, PlatformConfig
 
 # ── Fake telegram.error hierarchy ──────────────────────────────────────
 # Mirrors the real python-telegram-bot hierarchy:

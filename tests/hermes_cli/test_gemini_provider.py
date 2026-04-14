@@ -1,15 +1,14 @@
 """Tests for Google AI Studio (Gemini) provider integration."""
 
-import os
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 
-from hermes_cli.auth import PROVIDER_REGISTRY, resolve_provider, resolve_api_key_provider_credentials
-from hermes_cli.models import _PROVIDER_MODELS, _PROVIDER_LABELS, _PROVIDER_ALIASES, normalize_provider
-from hermes_cli.model_normalize import normalize_model_for_provider, detect_vendor
 from agent.model_metadata import get_model_context_length
-from agent.models_dev import PROVIDER_TO_MODELS_DEV, list_agentic_models, _NOISE_PATTERNS
-
+from agent.models_dev import _NOISE_PATTERNS, PROVIDER_TO_MODELS_DEV, list_agentic_models
+from hermes_cli.auth import PROVIDER_REGISTRY, resolve_api_key_provider_credentials, resolve_provider
+from hermes_cli.model_normalize import detect_vendor, normalize_model_for_provider
+from hermes_cli.models import _PROVIDER_ALIASES, _PROVIDER_LABELS, _PROVIDER_MODELS, normalize_provider
 
 # ── Provider Registry ──
 
@@ -193,6 +192,7 @@ class TestGeminiAgentInit:
     def test_agent_imports_without_error(self):
         """Verify run_agent.py has no SyntaxError (the critical bug)."""
         import importlib
+
         import run_agent
         importlib.reload(run_agent)
 

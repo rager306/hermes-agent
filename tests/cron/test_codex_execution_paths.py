@@ -3,7 +3,6 @@ import sys
 import types
 from types import SimpleNamespace
 
-
 sys.modules.setdefault("fire", types.SimpleNamespace(Fire=lambda *a, **k: None))
 sys.modules.setdefault("firecrawl", types.SimpleNamespace(Firecrawl=object))
 sys.modules.setdefault("fal_client", types.SimpleNamespace())
@@ -153,7 +152,7 @@ def test_gateway_run_agent_codex_path_handles_internal_401_refresh(monkeypatch):
     runner._fallback_model = None
     runner._running_agents = {}
     runner._smart_model_routing = {}
-    from unittest.mock import MagicMock, AsyncMock
+    from unittest.mock import AsyncMock, MagicMock
     runner.hooks = MagicMock()
     runner.hooks.emit = AsyncMock()
     runner.hooks.loaded_hooks = []

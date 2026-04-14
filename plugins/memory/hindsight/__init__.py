@@ -23,8 +23,7 @@ import json
 import logging
 import os
 import threading
-
-from hermes_constants import get_hermes_home
+from datetime import UTC
 from typing import Any, Dict, List
 
 from agent.memory_provider import MemoryProvider
@@ -261,13 +260,12 @@ class HindsightMemoryProvider(MemoryProvider):
     def post_setup(self, hermes_home: str, config: dict) -> None:
         """Custom setup wizard — installs only the deps needed for the selected mode."""
         import getpass
-        import subprocess
         import shutil
+        import subprocess
         import sys
         from pathlib import Path
 
         from hermes_cli.config import save_config
-
         from hermes_cli.memory_setup import _curses_select
 
         print("\n  Configuring Hindsight memory:\n")
@@ -295,7 +293,7 @@ class HindsightMemoryProvider(MemoryProvider):
         else:
             deps_to_install = [cloud_dep]
 
-        print(f"\n  Checking dependencies...")
+        print("\n  Checking dependencies...")
         uv_path = shutil.which("uv")
         if not uv_path:
             print("  ⚠ uv not found — install it: curl -LsSf https://astral.sh/uv/install.sh | sh")
@@ -303,17 +301,17 @@ class HindsightMemoryProvider(MemoryProvider):
         else:
             try:
                 subprocess.run(
-                    [uv_path, "pip", "install", "--python", sys.executable, "--quiet", "--upgrade"] + deps_to_install,
+                    [uv_path, "pip", "install", "--python", sys.executable, "--quiet", "--upgrade", *deps_to_install],
                     check=True, timeout=120, capture_output=True,
                 )
-                print(f"  ✓ Dependencies up to date")
+                print("  ✓ Dependencies up to date")
             except Exception as e:
                 print(f"  ⚠ Install failed: {e}")
                 print(f"  Run manually: uv pip install --python {sys.executable} {' '.join(deps_to_install)}")
 
         # Step 3: Mode-specific config
         if mode == "cloud":
-            print(f"\n  Get your API key at https://ui.hindsight.vectorize.io\n")
+            print("\n  Get your API key at https://ui.hindsight.vectorize.io\n")
             existing_key = os.environ.get("HINDSIGHT_API_KEY", "")
             if existing_key:
                 masked = f"...{existing_key[-4:]}" if len(existing_key) > 4 else "set"
@@ -372,7 +370,6 @@ class HindsightMemoryProvider(MemoryProvider):
         # Step 4: Save everything
         provider_config["bank_id"] = "hermes"
         provider_config["recall_budget"] = "mid"
-        bank_id = "hermes"
         config["memory"]["provider"] = "hindsight"
         save_config(config)
 
@@ -400,8 +397,8 @@ class HindsightMemoryProvider(MemoryProvider):
 
         print(f"\n  ✓ Hindsight memory configured ({mode} mode)")
         if env_writes:
-            print(f"  API keys saved to .env")
-        print(f"\n  Start a new session to activate.\n")
+            print("  API keys saved to .env")
+        print("\n  Start a new session to activate.\n")
 
     def get_config_schema(self):
         return [
@@ -447,12 +444,12 @@ class HindsightMemoryProvider(MemoryProvider):
                     llm_provider = "openai"
                 logger.debug("Creating HindsightEmbedded client (profile=%s, provider=%s)",
                              self._config.get("profile", "hermes"), llm_provider)
-                kwargs = dict(
-                    profile=self._config.get("profile", "hermes"),
-                    llm_provider=llm_provider,
-                    llm_api_key=self._config.get("llmApiKey") or self._config.get("llm_api_key") or os.environ.get("HINDSIGHT_LLM_API_KEY", ""),
-                    llm_model=self._config.get("llm_model", ""),
-                )
+                kwargs = {
+                    "profile": self._config.get("profile", "hermes"),
+                    "llm_provider": llm_provider,
+                    "llm_api_key": self._config.get("llmApiKey") or self._config.get("llm_api_key") or os.environ.get("HINDSIGHT_LLM_API_KEY", ""),
+                    "llm_model": self._config.get("llm_model", ""),
+                }
                 if self._llm_base_url:
                     kwargs["llm_base_url"] = self._llm_base_url
                 self._client = HindsightEmbedded(**kwargs)
@@ -472,12 +469,15 @@ class HindsightMemoryProvider(MemoryProvider):
         # Check client version and auto-upgrade if needed
         try:
             from importlib.metadata import version as pkg_version
+
             from packaging.version import Version
             installed = pkg_version("hindsight-client")
             if Version(installed) < Version(_MIN_CLIENT_VERSION):
                 logger.warning("hindsight-client %s is outdated (need >=%s), attempting upgrade...",
                                installed, _MIN_CLIENT_VERSION)
-                import shutil, subprocess, sys
+                import shutil
+                import subprocess
+                import sys
                 uv_path = shutil.which("uv")
                 if uv_path:
                     try:
@@ -722,7 +722,7 @@ class HindsightMemoryProvider(MemoryProvider):
             return
 
         from datetime import datetime, timezone
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
 
         messages = [
             {"role": "user", "content": user_content, "timestamp": now},
@@ -771,7 +771,7 @@ class HindsightMemoryProvider(MemoryProvider):
         self._sync_thread = threading.Thread(target=_sync, daemon=True, name="hindsight-sync")
         self._sync_thread.start()
 
-    def get_tool_schemas(self) -> List[Dict[str, Any]]:
+    def get_tool_schemas(self) -> list[dict[str, Any]]:
         if self._memory_mode == "context":
             return []
         return [RETAIN_SCHEMA, RECALL_SCHEMA, REFLECT_SCHEMA]

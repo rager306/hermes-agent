@@ -8,7 +8,6 @@ import pytest
 
 from gateway.stream_consumer import GatewayStreamConsumer, StreamConsumerConfig
 
-
 # ── _clean_for_display unit tests ────────────────────────────────────────
 
 

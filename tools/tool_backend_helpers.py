@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from utils import env_var_enabled
 
@@ -50,7 +50,7 @@ def resolve_modal_backend_state(
     *,
     has_direct: bool,
     managed_ready: bool,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Resolve direct vs managed Modal backend selection.
 
     Semantics:

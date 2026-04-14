@@ -448,9 +448,9 @@ def prompt_dangerous_approval(command: str, description: str,
             def get_input():
                 try:
                     prompt = "      Choice [o/s/a/D]: " if allow_permanent else "      Choice [o/s/D]: "
-                    result_["choice"] = input(prompt).strip().lower()
+                    result_["choice"] = input(prompt).strip().lower()  # noqa: B023
                 except (EOFError, OSError):
-                    result_["choice"] = ""
+                    result_["choice"] = ""  # noqa: B023
 
             thread = threading.Thread(target=get_input, daemon=True)
             thread.start()

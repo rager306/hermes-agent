@@ -1,6 +1,5 @@
 from agent.smart_model_routing import choose_cheap_model_route
 
-
 _BASE_CONFIG = {
     "enabled": True,
     "cheap_model": {

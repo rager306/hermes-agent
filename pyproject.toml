@@ -153,6 +153,12 @@ ignore = [
     "E501",  # line too long (handled by formatter)
 ]
 
-[tool.ty]
+[tool.pyright]
 pythonVersion = "3.13"
 typeCheckingMode = "basic"
+
+[tool.pyrefly]
+project-includes = [
+    "**/*.py*",
+    "**/*.ipynb",
+]

@@ -3,12 +3,12 @@
 from unittest.mock import patch
 
 from hermes_cli.tools_config import (
+    TOOL_CATEGORIES,
     _configure_provider,
     _get_platform_tools,
     _platform_toolset_summary,
     _save_platform_tools,
     _toolset_has_keys,
-    TOOL_CATEGORIES,
     _visible_providers,
     tools_command,
 )
@@ -416,8 +416,8 @@ class TestPlatformToolsetConsistency:
 
     def test_skills_config_covers_tools_config_platforms(self):
         """skills_config.PLATFORMS should have entries for all gateway platforms."""
-        from hermes_cli.tools_config import PLATFORMS as TOOLS_PLATFORMS
         from hermes_cli.skills_config import PLATFORMS as SKILLS_PLATFORMS
+        from hermes_cli.tools_config import PLATFORMS as TOOLS_PLATFORMS
 
         non_messaging = {"api_server"}
         for platform in TOOLS_PLATFORMS:

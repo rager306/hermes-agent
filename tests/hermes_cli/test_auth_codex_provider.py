@@ -1,23 +1,19 @@
 """Tests for Codex auth — tokens stored in Hermes auth store (~/.hermes/auth.json)."""
 
+import base64
 import json
 import time
-import base64
 from pathlib import Path
 
 import pytest
-import yaml
 
 from hermes_cli.auth import (
-    AuthError,
     DEFAULT_CODEX_BASE_URL,
-    PROVIDER_REGISTRY,
+    AuthError,
+    _import_codex_cli_tokens,
     _read_codex_tokens,
     _save_codex_tokens,
     _write_codex_cli_tokens,
-    _import_codex_cli_tokens,
-    get_codex_auth_status,
-    get_provider_auth_state,
     resolve_codex_runtime_credentials,
     resolve_provider,
 )

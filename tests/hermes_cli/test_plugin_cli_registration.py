@@ -9,9 +9,7 @@ Covers:
 """
 
 import argparse
-import os
 import sys
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -22,7 +20,6 @@ from hermes_cli.plugins import (
     PluginManifest,
     get_plugin_cli_commands,
 )
-
 
 # ── PluginContext.register_cli_command ─────────────────────────────────────
 

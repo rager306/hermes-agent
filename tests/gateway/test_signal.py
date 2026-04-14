@@ -1,13 +1,12 @@
 """Tests for Signal messenger platform adapter."""
 import base64
-import json
-import pytest
 from pathlib import Path
-from unittest.mock import MagicMock, patch, AsyncMock
+from unittest.mock import AsyncMock, MagicMock, patch
 from urllib.parse import quote
 
-from gateway.config import Platform, PlatformConfig
+import pytest
 
+from gateway.config import Platform, PlatformConfig
 
 # ---------------------------------------------------------------------------
 # Shared Helpers
@@ -340,8 +339,8 @@ class TestSignalPhoneRedaction:
 class TestSignalAuthorization:
     def test_signal_in_allowlist_maps(self):
         """Signal should be in the platform auth maps."""
-        from gateway.run import GatewayRunner
         from gateway.config import GatewayConfig
+        from gateway.run import GatewayRunner
 
         gw = GatewayRunner.__new__(GatewayRunner)
         gw.config = GatewayConfig()
@@ -365,7 +364,6 @@ class TestSignalAuthorization:
 class TestSignalSendMessage:
     def test_signal_in_platform_map(self):
         """Signal should be in the send_message tool's platform map."""
-        from tools.send_message_tool import send_message_tool
         # Just verify the import works and Signal is a valid platform
         from gateway.config import Platform
         assert Platform.SIGNAL.value == "signal"
@@ -650,7 +648,7 @@ class TestSignalMediaExtraction:
     def test_extract_media_finds_audio_tag(self):
         """BasePlatformAdapter.extract_media should find MEDIA: audio paths."""
         from gateway.platforms.base import BasePlatformAdapter
-        media, cleaned = BasePlatformAdapter.extract_media(
+        media, _cleaned = BasePlatformAdapter.extract_media(
             "[[audio_as_voice]]\nMEDIA:/tmp/reply.ogg"
         )
         assert len(media) == 1

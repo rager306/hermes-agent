@@ -2,7 +2,6 @@
 state management, streaming TTS activation, voice message prefix, _vprint."""
 
 import ast
-import os
 import queue
 import threading
 from types import SimpleNamespace
@@ -185,10 +184,14 @@ class TestStreamingTTSActivation:
         use_streaming_tts = False
         try:
             from tools.tts_tool import (
-                _load_tts_config as _load_tts_cfg,
                 _get_provider as _get_prov,
+            )
+            from tools.tts_tool import (
                 _import_elevenlabs,
                 _import_sounddevice,
+            )
+            from tools.tts_tool import (
+                _load_tts_config as _load_tts_cfg,
             )
             assert callable(_import_elevenlabs)
             assert callable(_import_sounddevice)
@@ -204,10 +207,16 @@ class TestStreamingTTSActivation:
             mock_sd.return_value = MagicMock()
 
             from tools.tts_tool import (
-                _load_tts_config as load_cfg,
                 _get_provider as get_prov,
+            )
+            from tools.tts_tool import (
                 _import_elevenlabs as import_el,
+            )
+            from tools.tts_tool import (
                 _import_sounddevice as import_sd,
+            )
+            from tools.tts_tool import (
+                _load_tts_config as load_cfg,
             )
             cfg = load_cfg()
             if get_prov(cfg) == "elevenlabs":
@@ -225,10 +234,16 @@ class TestStreamingTTSActivation:
              patch("tools.tts_tool._import_elevenlabs", side_effect=ImportError("no elevenlabs")):
             try:
                 from tools.tts_tool import (
-                    _load_tts_config as load_cfg,
                     _get_provider as get_prov,
+                )
+                from tools.tts_tool import (
                     _import_elevenlabs as import_el,
+                )
+                from tools.tts_tool import (
                     _import_sounddevice as import_sd,
+                )
+                from tools.tts_tool import (
+                    _load_tts_config as load_cfg,
                 )
                 cfg = load_cfg()
                 if get_prov(cfg) == "elevenlabs":
@@ -249,10 +264,16 @@ class TestStreamingTTSActivation:
              patch("tools.tts_tool._import_sounddevice", side_effect=OSError("no PortAudio")):
             try:
                 from tools.tts_tool import (
-                    _load_tts_config as load_cfg,
                     _get_provider as get_prov,
+                )
+                from tools.tts_tool import (
                     _import_elevenlabs as import_el,
+                )
+                from tools.tts_tool import (
                     _import_sounddevice as import_sd,
+                )
+                from tools.tts_tool import (
+                    _load_tts_config as load_cfg,
                 )
                 cfg = load_cfg()
                 if get_prov(cfg) == "elevenlabs":
@@ -271,10 +292,16 @@ class TestStreamingTTSActivation:
              patch("tools.tts_tool._get_provider", return_value="edge"):
             try:
                 from tools.tts_tool import (
-                    _load_tts_config as load_cfg,
                     _get_provider as get_prov,
+                )
+                from tools.tts_tool import (
                     _import_elevenlabs as import_el,
+                )
+                from tools.tts_tool import (
                     _import_sounddevice as import_sd,
+                )
+                from tools.tts_tool import (
+                    _load_tts_config as load_cfg,
                 )
                 cfg = load_cfg()
                 if get_prov(cfg) == "elevenlabs":
@@ -444,7 +471,7 @@ class TestVprintForceParameter:
     def test_error_messages_use_force_in_run_agent(self):
         """Verify that critical error _vprint calls in run_agent.py
         include force=True."""
-        with open("run_agent.py", "r") as f:
+        with open("run_agent.py") as f:
             source = f.read()
 
         tree = ast.parse(source)
@@ -511,8 +538,8 @@ class TestEdgeTTSLazyImport:
                     if isinstance(n, _ast.Name) and n.id == "edge_tts"
                 ]
                 assert bare_refs == [], (
-                    f"_generate_edge_tts uses bare 'edge_tts' name — "
-                    f"should use _import_edge_tts() lazy helper"
+                    "_generate_edge_tts uses bare 'edge_tts' name — "
+                    "should use _import_edge_tts() lazy helper"
                 )
 
                 # Must have a call to _import_edge_tts
@@ -570,7 +597,7 @@ class TestCtrlCResetsContinuousMode:
         lines = source.split("\n")
         in_cancel_block = False
         found_continuous_reset = False
-        for i, line in enumerate(lines):
+        for _i, line in enumerate(lines):
             if "Cancel active voice recording" in line:
                 in_cancel_block = True
             if in_cancel_block:
@@ -592,6 +619,7 @@ class TestDisableVoiceModeStopsTTS:
     def test_disable_voice_mode_calls_stop_playback(self):
         """Source check: _disable_voice_mode must call stop_playback()."""
         import inspect
+
         from cli import HermesCLI
 
         source = inspect.getsource(HermesCLI._disable_voice_mode)
@@ -1206,7 +1234,8 @@ class TestRefreshLevelLock:
     """Bug: _refresh_level thread read _voice_recording without lock."""
 
     def test_refresh_stops_when_recording_false(self):
-        import threading, time
+        import threading
+        import time
 
         lock = threading.Lock()
         recording = True

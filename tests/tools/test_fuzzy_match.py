@@ -19,12 +19,12 @@ class TestExactMatch:
         assert new == content
 
     def test_empty_old_string(self):
-        new, count, _, err = fuzzy_find_and_replace("abc", "", "x")
+        _new, count, _, err = fuzzy_find_and_replace("abc", "", "x")
         assert count == 0
         assert err is not None
 
     def test_identical_strings(self):
-        new, count, _, err = fuzzy_find_and_replace("abc", "abc", "abc")
+        _new, count, _, err = fuzzy_find_and_replace("abc", "abc", "abc")
         assert count == 0
         assert "identical" in err
 
@@ -39,7 +39,7 @@ class TestExactMatch:
 class TestWhitespaceDifference:
     def test_extra_spaces_match(self):
         content = "def  foo(  x,  y  ):"
-        new, count, _, err = fuzzy_find_and_replace(content, "def foo( x, y ):", "def bar(x, y):")
+        new, count, _, _err = fuzzy_find_and_replace(content, "def foo( x, y ):", "def bar(x, y):")
         assert count == 1
         assert "bar" in new
 
@@ -47,7 +47,7 @@ class TestWhitespaceDifference:
 class TestIndentDifference:
     def test_different_indentation(self):
         content = "    def foo():\n        pass"
-        new, count, _, err = fuzzy_find_and_replace(content, "def foo():\n    pass", "def bar():\n    return 1")
+        new, count, _, _err = fuzzy_find_and_replace(content, "def foo():\n    pass", "def bar():\n    return 1")
         assert count == 1
         assert "bar" in new
 
@@ -55,7 +55,7 @@ class TestIndentDifference:
 class TestReplaceAll:
     def test_multiple_matches_without_flag_errors(self):
         content = "aaa bbb aaa"
-        new, count, _, err = fuzzy_find_and_replace(content, "aaa", "ccc", replace_all=False)
+        _new, count, _, err = fuzzy_find_and_replace(content, "aaa", "ccc", replace_all=False)
         assert count == 0
         assert "Found 2 matches" in err
 
@@ -83,7 +83,7 @@ class TestUnicodeNormalized:
     def test_smart_quotes_matched(self):
         """Smart double quotes in content should match straight quotes in pattern."""
         content = 'print(\u201chello\u201d)'
-        new, count, strategy, err = fuzzy_find_and_replace(
+        new, count, _strategy, err = fuzzy_find_and_replace(
             content, 'print("hello")', 'print("world")'
         )
         assert count == 1, f"Expected match via unicode_normalized, got err={err}"
@@ -93,7 +93,7 @@ class TestUnicodeNormalized:
         """When content and pattern have no Unicode variants, strategy is skipped."""
         content = "hello world"
         # Should match via exact, not unicode_normalized
-        new, count, strategy, err = fuzzy_find_and_replace(content, "hello", "hi")
+        _new, count, strategy, _err = fuzzy_find_and_replace(content, "hello", "hi")
         assert count == 1
         assert strategy == "exact"
 
@@ -105,7 +105,7 @@ class TestBlockAnchorThreshold:
         """A block with >50% middle similarity should match."""
         content = "def foo():\n    x = 1\n    y = 2\n    return x + y\n"
         pattern = "def foo():\n    x = 1\n    y = 9\n    return x + y"
-        new, count, strategy, err = fuzzy_find_and_replace(content, pattern, "def foo():\n    return 0\n")
+        _new, count, _strategy, _err = fuzzy_find_and_replace(content, pattern, "def foo():\n    return 0\n")
         # Should match via block_anchor or earlier strategy
         assert count == 1
 
@@ -127,7 +127,7 @@ class TestBlockAnchorThreshold:
             "    z = 3\n"
             "    pass"
         )
-        new, count, strategy, err = fuzzy_find_and_replace(content, pattern, "replaced")
+        _new, count, strategy, _err = fuzzy_find_and_replace(content, pattern, "replaced")
         # With threshold=0.50, this near-zero-similarity middle should not match
         assert count == 0, (
             f"Block with unrelated middle should not match under threshold=0.50, "
@@ -139,12 +139,12 @@ class TestStrategyNameSurfaced:
     """Tests for the strategy name in the 4-tuple return (Bug 6)."""
 
     def test_exact_strategy_name(self):
-        new, count, strategy, err = fuzzy_find_and_replace("hello", "hello", "world")
+        _new, count, strategy, _err = fuzzy_find_and_replace("hello", "hello", "world")
         assert strategy == "exact"
         assert count == 1
 
     def test_failed_match_returns_none_strategy(self):
-        new, count, strategy, err = fuzzy_find_and_replace("hello", "xyz", "world")
+        _new, count, strategy, err = fuzzy_find_and_replace("hello", "xyz", "world")
         assert count == 0
         assert strategy is None
         assert err is not None

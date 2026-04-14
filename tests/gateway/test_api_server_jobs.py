@@ -10,7 +10,6 @@ Covers:
 - Cron module unavailability (501 when _CRON_AVAILABLE is False)
 """
 
-import json
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -19,7 +18,6 @@ from aiohttp.test_utils import TestClient, TestServer
 
 from gateway.config import PlatformConfig
 from gateway.platforms.api_server import APIServerAdapter, cors_middleware
-
 
 # ---------------------------------------------------------------------------
 # Helpers

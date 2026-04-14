@@ -81,8 +81,8 @@ def _capture_check(monkeypatch, results, name=None) -> str:
 
 
 def _capture_update(monkeypatch, results) -> tuple[str, list[tuple[str, str, bool]]]:
-    import tools.skills_hub as hub
     import hermes_cli.skills_hub as cli_hub
+    import tools.skills_hub as hub
 
     sink = StringIO()
     console = Console(file=sink, force_terminal=False, color_system=None)

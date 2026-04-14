@@ -4,13 +4,12 @@ import os
 from unittest.mock import patch
 
 from gateway.platforms.base import (
-    BasePlatformAdapter,
     GATEWAY_SECRET_CAPTURE_UNSUPPORTED_MESSAGE,
+    BasePlatformAdapter,
     MessageEvent,
-    MessageType,
+    _prefix_within_utf16_limit,
     safe_url_for_log,
     utf16_len,
-    _prefix_within_utf16_limit,
 )
 
 
@@ -263,14 +262,14 @@ class TestExtractMedia:
 
     def test_single_media_tag(self):
         content = "MEDIA:/path/to/audio.ogg"
-        media, cleaned = BasePlatformAdapter.extract_media(content)
+        media, _cleaned = BasePlatformAdapter.extract_media(content)
         assert len(media) == 1
         assert media[0][0] == "/path/to/audio.ogg"
         assert media[0][1] is False  # no voice tag
 
     def test_media_with_voice_directive(self):
         content = "[[audio_as_voice]]\nMEDIA:/path/to/voice.ogg"
-        media, cleaned = BasePlatformAdapter.extract_media(content)
+        media, _cleaned = BasePlatformAdapter.extract_media(content)
         assert len(media) == 1
         assert media[0][0] == "/path/to/voice.ogg"
         assert media[0][1] is True  # voice tag present

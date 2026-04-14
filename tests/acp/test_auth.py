@@ -1,6 +1,6 @@
 """Tests for acp_adapter.auth — provider detection."""
 
-from acp_adapter.auth import has_provider, detect_provider
+from acp_adapter.auth import detect_provider, has_provider
 
 
 class TestHasProvider:

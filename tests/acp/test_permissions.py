@@ -4,13 +4,12 @@ import asyncio
 from concurrent.futures import Future
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from acp.schema import (
     AllowedOutcome,
     DeniedOutcome,
     RequestPermissionResponse,
 )
+
 from acp_adapter.permissions import make_approval_callback
 
 

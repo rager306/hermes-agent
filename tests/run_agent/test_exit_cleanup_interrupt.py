@@ -6,11 +6,7 @@ abort remaining cleanup steps.  These tests exercise the actual production
 code paths — not a copy of the try/except pattern.
 """
 
-import atexit
-import weakref
-from unittest.mock import MagicMock, patch, call
-
-import pytest
+from unittest.mock import MagicMock, patch
 
 
 class TestCronJobCleanup:

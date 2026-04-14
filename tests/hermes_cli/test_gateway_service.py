@@ -338,9 +338,8 @@ class TestLaunchdServiceRecovery:
 
     def test_launchd_stop_tolerates_already_unloaded(self, monkeypatch, capsys):
         """launchd_stop silently handles exit codes 3/113 (job not loaded)."""
-        label = gateway_cli.get_launchd_label()
-        domain = gateway_cli._launchd_domain()
-        target = f"{domain}/{label}"
+        gateway_cli.get_launchd_label()
+        gateway_cli._launchd_domain()
 
         def fake_run(cmd, check=False, **kwargs):
             if "bootout" in cmd:
@@ -773,8 +772,6 @@ class TestSystemServiceIdentityRootHandling:
 
     def test_auto_detected_root_is_rejected(self, monkeypatch):
         """When root is auto-detected (not explicitly requested), raise."""
-        import pwd
-        import grp
 
         monkeypatch.delenv("SUDO_USER", raising=False)
         monkeypatch.setenv("USER", "root")
@@ -786,27 +783,25 @@ class TestSystemServiceIdentityRootHandling:
 
     def test_explicit_root_is_allowed(self, monkeypatch):
         """When root is explicitly passed via --run-as-user root, allow it."""
-        import pwd
         import grp
+        import pwd
 
         root_info = pwd.getpwnam("root")
-        root_group = grp.getgrgid(root_info.pw_gid).gr_name
+        grp.getgrgid(root_info.pw_gid).gr_name
 
-        username, group, home = gateway_cli._system_service_identity(run_as_user="root")
+        username, _group, home = gateway_cli._system_service_identity(run_as_user="root")
         assert username == "root"
         assert home == root_info.pw_dir
 
     def test_non_root_user_passes_through(self, monkeypatch):
         """Normal non-root user works as before."""
-        import pwd
-        import grp
 
         monkeypatch.delenv("SUDO_USER", raising=False)
         monkeypatch.setenv("USER", "nobody")
         monkeypatch.setenv("LOGNAME", "nobody")
 
         try:
-            username, group, home = gateway_cli._system_service_identity(run_as_user=None)
+            username, _group, _home = gateway_cli._system_service_identity(run_as_user=None)
             assert username == "nobody"
         except ValueError as e:
             # "nobody" might not exist on all systems

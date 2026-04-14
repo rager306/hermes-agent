@@ -45,25 +45,24 @@ import time
 import uuid
 from collections import defaultdict
 from pathlib import Path, PurePosixPath, PureWindowsPath
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 # Ensure repo root is on sys.path for imports
 _repo_root = Path(__file__).resolve().parent.parent.parent.parent
 if str(_repo_root) not in sys.path:
     sys.path.insert(0, str(_repo_root))
 
-from pydantic import Field
-
 from atroposlib.envs.base import EvalHandlingEnum
 from atroposlib.envs.server_handling.server_manager import APIServerConfig
+from pydantic import Field
 
-from environments.agent_loop import AgentResult, HermesAgentLoop
+from environments.agent_loop import HermesAgentLoop
 from environments.hermes_base_env import HermesAgentBaseEnv, HermesAgentEnvConfig
 from environments.tool_context import ToolContext
 from tools.terminal_tool import (
-    register_task_env_overrides,
-    clear_task_env_overrides,
     cleanup_vm,
+    clear_task_env_overrides,
+    register_task_env_overrides,
 )
 
 logger = logging.getLogger(__name__)
@@ -101,12 +100,12 @@ class TerminalBench2EvalConfig(HermesAgentEnvConfig):
     )
 
     # --- Task filtering (comma-separated from CLI) ---
-    task_filter: Optional[str] = Field(
+    task_filter: str | None = Field(
         default=None,
         description="Comma-separated task names to run (e.g., 'fix-git,git-multibranch'). "
         "If not set, all tasks are run.",
     )
-    skip_tasks: Optional[str] = Field(
+    skip_tasks: str | None = Field(
         default=None,
         description="Comma-separated task names to skip on top of the default skip list.",
     )
@@ -245,7 +244,7 @@ class TerminalBench2EvalEnv(HermesAgentBaseEnv):
     env_config_cls = TerminalBench2EvalConfig
 
     @classmethod
-    def config_init(cls) -> Tuple[TerminalBench2EvalConfig, List[APIServerConfig]]:
+    def config_init(cls) -> tuple[TerminalBench2EvalConfig, list[APIServerConfig]]:
         """
         Default configuration for Terminal-Bench 2.0 evaluation.
 
@@ -350,12 +349,12 @@ class TerminalBench2EvalEnv(HermesAgentBaseEnv):
         self.iter = 0
 
         # Build category index for per-category metrics
-        self.category_index: Dict[str, List[int]] = defaultdict(list)
+        self.category_index: dict[str, list[int]] = defaultdict(list)
         for i, task in enumerate(self.all_eval_items):
             self.category_index[task.get("category", "unknown")].append(i)
 
         # Reward tracking for wandb logging
-        self.eval_metrics: List[Tuple[str, float]] = []
+        self.eval_metrics: list[tuple[str, float]] = []
 
         # Streaming JSONL writer -- saves each task's full conversation
         # immediately on completion so data is preserved even on Ctrl+C.
@@ -373,7 +372,7 @@ class TerminalBench2EvalEnv(HermesAgentBaseEnv):
         for cat, indices in sorted(self.category_index.items()):
             print(f"  {cat}: {len(indices)} tasks")
 
-    def _save_result(self, result: Dict[str, Any]):
+    def _save_result(self, result: dict[str, Any]):
         """Write a single task result to the streaming JSONL file immediately."""
         if not hasattr(self, "_streaming_file") or self._streaming_file.closed:
             return
@@ -394,7 +393,7 @@ class TerminalBench2EvalEnv(HermesAgentBaseEnv):
         self.iter += 1
         return item
 
-    def format_prompt(self, item: Dict[str, Any]) -> str:
+    def format_prompt(self, item: dict[str, Any]) -> str:
         """Return the task's instruction as the user prompt."""
         return item["instruction"]
 
@@ -415,8 +414,8 @@ class TerminalBench2EvalEnv(HermesAgentBaseEnv):
     # =========================================================================
 
     def _resolve_task_image(
-        self, item: Dict[str, Any], task_name: str
-    ) -> Tuple[str, Optional[Path]]:
+        self, item: dict[str, Any], task_name: str
+    ) -> tuple[str, Path | None]:
         """
         Resolve the Docker image for a task, with fallback to Dockerfile.
 
@@ -464,7 +463,7 @@ class TerminalBench2EvalEnv(HermesAgentBaseEnv):
     # Per-task evaluation -- agent loop + test verification
     # =========================================================================
 
-    async def rollout_and_score_eval(self, eval_item: Dict[str, Any]) -> Dict:
+    async def rollout_and_score_eval(self, eval_item: dict[str, Any]) -> dict:
         """
         Evaluate a single TB2 task: run the agent loop, then verify with tests.
 
@@ -518,7 +517,7 @@ class TerminalBench2EvalEnv(HermesAgentBaseEnv):
             # --- 3. Resolve tools and build messages ---
             tools, valid_names = self._resolve_tools_for_group()
 
-            messages: List[Dict[str, Any]] = []
+            messages: list[dict[str, Any]] = []
             if self.config.system_prompt:
                 messages.append({"role": "system", "content": self.config.system_prompt})
             messages.append({"role": "user", "content": self.format_prompt(eval_item)})
@@ -630,7 +629,7 @@ class TerminalBench2EvalEnv(HermesAgentBaseEnv):
                 shutil.rmtree(task_dir, ignore_errors=True)
 
     def _run_tests(
-        self, item: Dict[str, Any], ctx: ToolContext, task_name: str
+        self, item: dict[str, Any], ctx: ToolContext, task_name: str
     ) -> float:
         """
         Upload and execute the test suite in the agent's sandbox, then
@@ -754,7 +753,7 @@ class TerminalBench2EvalEnv(HermesAgentBaseEnv):
     # Evaluate -- main entry point for the eval subcommand
     # =========================================================================
 
-    async def _eval_with_timeout(self, item: Dict[str, Any]) -> Dict:
+    async def _eval_with_timeout(self, item: dict[str, Any]) -> dict:
         """
         Wrap rollout_and_score_eval with a per-task wall-clock timeout.
 
@@ -768,7 +767,7 @@ class TerminalBench2EvalEnv(HermesAgentBaseEnv):
                 self.rollout_and_score_eval(item),
                 timeout=self.config.task_timeout,
             )
-        except asyncio.TimeoutError:
+        except TimeoutError:
             from tqdm import tqdm
             elapsed = self.config.task_timeout
             tqdm.write(f"  [TIMEOUT] {task_name} (exceeded {elapsed}s wall-clock limit)")
@@ -898,7 +897,7 @@ class TerminalBench2EvalEnv(HermesAgentBaseEnv):
         overall_pass_rate = passed / total if total > 0 else 0.0
 
         # Per-category breakdown
-        cat_results: Dict[str, List[Dict]] = defaultdict(list)
+        cat_results: dict[str, list[dict]] = defaultdict(list)
         for r in valid_results:
             cat_results[r.get("category", "unknown")].append(r)
 
@@ -919,7 +918,7 @@ class TerminalBench2EvalEnv(HermesAgentBaseEnv):
             eval_metrics[f"eval/pass_rate_{cat_key}"] = cat_pass_rate
 
         # Store metrics for wandb_log
-        self.eval_metrics = [(k, v) for k, v in eval_metrics.items()]
+        self.eval_metrics = list(eval_metrics.items())
 
         # ---- Print summary ----
         print(f"\n{'='*60}")
@@ -999,7 +998,7 @@ class TerminalBench2EvalEnv(HermesAgentBaseEnv):
     # Wandb logging
     # =========================================================================
 
-    async def wandb_log(self, wandb_metrics: Optional[Dict] = None):
+    async def wandb_log(self, wandb_metrics: dict | None = None):
         """Log TB2-specific metrics to wandb."""
         if wandb_metrics is None:
             wandb_metrics = {}

@@ -1,15 +1,13 @@
 """Tests for Matrix require-mention gating and auto-thread features."""
 
 import json
-import sys
 import time
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
 from gateway.config import PlatformConfig
-
 
 # The matrix adapter module is importable without mautrix installed
 # (module-level imports use try/except with stubs).  No need for
@@ -604,6 +602,7 @@ class TestMatrixConfigBridge:
         }
 
         import os
+
         import yaml
 
         config_file = tmp_path / "config.yaml"
@@ -632,6 +631,7 @@ class TestMatrixConfigBridge:
         monkeypatch.delenv("MATRIX_DM_MENTION_THREADS", raising=False)
 
         import os
+
         import yaml
 
         yaml_content = {"matrix": {"dm_mention_threads": True}}

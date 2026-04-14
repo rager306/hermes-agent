@@ -5,21 +5,19 @@ Pure display functions with no HermesCLI state dependency.
 
 import json
 import logging
-import os
 import shutil
 import subprocess
 import threading
 import time
 from pathlib import Path
-from hermes_constants import get_hermes_home
-from typing import Dict, List, Optional
 
+from prompt_toolkit import print_formatted_text as _pt_print
+from prompt_toolkit.formatted_text import ANSI as _PT_ANSI
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from prompt_toolkit import print_formatted_text as _pt_print
-from prompt_toolkit.formatted_text import ANSI as _PT_ANSI
+from hermes_constants import get_hermes_home
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +63,8 @@ def _skin_branding(key: str, fallback: str) -> str:
 # ASCII Art & Branding
 # =========================================================================
 
-from hermes_cli import __version__ as VERSION, __release_date__ as RELEASE_DATE
+from hermes_cli import __release_date__ as RELEASE_DATE
+from hermes_cli import __version__ as VERSION
 
 HERMES_AGENT_LOGO = """[bold #FFD700]██╗  ██╗███████╗██████╗ ███╗   ███╗███████╗███████╗       █████╗  ██████╗ ███████╗███╗   ██╗████████╗[/]
 [bold #FFD700]██║  ██║██╔════╝██╔══██╗████╗ ████║██╔════╝██╔════╝      ██╔══██╗██╔════╝ ██╔════╝████╗  ██║╚══██╔══╝[/]
@@ -96,7 +95,7 @@ HERMES_CADUCEUS = """[#CD7F32]⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⡀⠀⣀⣀�
 # Skills scanning
 # =========================================================================
 
-def get_available_skills() -> Dict[str, List[str]]:
+def get_available_skills() -> dict[str, list[str]]:
     """Return skills grouped by category, filtered by platform and disabled state.
 
     Delegates to ``_find_all_skills()`` from ``tools/skills_tool`` which already
@@ -109,7 +108,7 @@ def get_available_skills() -> Dict[str, List[str]]:
     except Exception:
         return {}
 
-    skills_by_category: Dict[str, List[str]] = {}
+    skills_by_category: dict[str, list[str]] = {}
     for skill in all_skills:
         category = skill.get("category") or "general"
         skills_by_category.setdefault(category, []).append(skill["name"])
@@ -124,7 +123,7 @@ def get_available_skills() -> Dict[str, List[str]]:
 _UPDATE_CHECK_CACHE_SECONDS = 6 * 3600
 
 
-def check_for_updates() -> Optional[int]:
+def check_for_updates() -> int | None:
     """Check how many commits behind origin/main the local repo is.
 
     Does a ``git fetch`` at most once every 6 hours (cached to
@@ -184,7 +183,7 @@ def check_for_updates() -> Optional[int]:
     return behind
 
 
-def _resolve_repo_dir() -> Optional[Path]:
+def _resolve_repo_dir() -> Path | None:
     """Return the active Hermes git checkout, or None if this isn't a git install."""
     hermes_home = get_hermes_home()
     repo_dir = hermes_home / "hermes-agent"
@@ -193,7 +192,7 @@ def _resolve_repo_dir() -> Optional[Path]:
     return repo_dir if (repo_dir / ".git").exists() else None
 
 
-def _git_short_hash(repo_dir: Path, rev: str) -> Optional[str]:
+def _git_short_hash(repo_dir: Path, rev: str) -> str | None:
     """Resolve a git revision to an 8-character short hash."""
     try:
         result = subprocess.run(
@@ -211,7 +210,7 @@ def _git_short_hash(repo_dir: Path, rev: str) -> Optional[str]:
     return value or None
 
 
-def get_git_banner_state(repo_dir: Optional[Path] = None) -> Optional[dict]:
+def get_git_banner_state(repo_dir: Path | None = None) -> dict | None:
     """Return upstream/local git hashes for the startup banner."""
     repo_dir = repo_dir or _resolve_repo_dir()
     if repo_dir is None:
@@ -261,7 +260,7 @@ def format_banner_version_label() -> str:
 # Non-blocking update check
 # =========================================================================
 
-_update_result: Optional[int] = None
+_update_result: int | None = None
 _update_check_done = threading.Event()
 
 
@@ -275,7 +274,7 @@ def prefetch_update_check():
     t.start()
 
 
-def get_update_result(timeout: float = 0.5) -> Optional[int]:
+def get_update_result(timeout: float = 0.5) -> int | None:
     """Get result of prefetched check. Returns None if not ready."""
     _update_check_done.wait(timeout=timeout)
     return _update_result
@@ -314,11 +313,11 @@ def _display_toolset_name(toolset_name: str) -> str:
 
 
 def build_welcome_banner(console: Console, model: str, cwd: str,
-                         tools: List[dict] = None,
-                         enabled_toolsets: List[str] = None,
-                         session_id: str = None,
+                         tools: list[dict] | None = None,
+                         enabled_toolsets: list[str] | None = None,
+                         session_id: str | None = None,
                          get_toolset_for_tool=None,
-                         context_length: int = None):
+                         context_length: int | None = None):
     """Build and print a welcome banner with caduceus on left and info on right.
 
     Args:
@@ -331,7 +330,7 @@ def build_welcome_banner(console: Console, model: str, cwd: str,
         get_toolset_for_tool: Callable to map tool name -> toolset name.
         context_length: Model's context window size in tokens.
     """
-    from model_tools import check_tool_availability, TOOLSET_REQUIREMENTS
+    from model_tools import TOOLSET_REQUIREMENTS, check_tool_availability
     if get_toolset_for_tool is None:
         from model_tools import get_toolset_for_tool
 
@@ -385,7 +384,7 @@ def build_welcome_banner(console: Console, model: str, cwd: str,
     left_content = "\n".join(left_lines)
 
     right_lines = [f"[bold {accent}]Available Tools[/]"]
-    toolsets_dict: Dict[str, list] = {}
+    toolsets_dict: dict[str, list] = {}
 
     for tool in tools:
         tool_name = tool["function"]["name"]
@@ -517,7 +516,7 @@ def build_welcome_banner(console: Console, model: str, cwd: str,
     right_content = "\n".join(right_lines)
     layout_table.add_row(left_content, right_content)
 
-    agent_name = _skin_branding("agent_name", "Hermes Agent")
+    _skin_branding("agent_name", "Hermes Agent")
     title_color = _skin_color("banner_title", "#FFD700")
     border_color = _skin_color("banner_border", "#CD7F32")
     outer_panel = Panel(

@@ -5,16 +5,12 @@ RetainDBMemoryProvider lifecycle/tools/prefetch, thread management, connection p
 """
 
 import json
-import os
 import sqlite3
-import tempfile
-import threading
 import time
 from pathlib import Path
-from unittest.mock import MagicMock, patch, PropertyMock
+from unittest.mock import MagicMock, patch
 
 import pytest
-
 
 # ---------------------------------------------------------------------------
 # Imports — guarded since plugins/memory lives outside the standard test path
@@ -33,19 +29,17 @@ def _isolate_env(tmp_path, monkeypatch):
 
 # We need the repo root on sys.path so the plugin can import agent.memory_provider
 import sys
+
 _repo_root = str(Path(__file__).resolve().parents[2])
 if _repo_root not in sys.path:
     sys.path.insert(0, _repo_root)
 
 from plugins.memory.retaindb import (
+    RetainDBMemoryProvider,
+    _build_overlay,
     _Client,
     _WriteQueue,
-    _build_overlay,
-    RetainDBMemoryProvider,
-    _ASYNC_SHUTDOWN,
-    _DEFAULT_BASE_URL,
 )
-
 
 # ===========================================================================
 # _Client tests
@@ -190,7 +184,7 @@ class TestWriteQueue:
         return _WriteQueue(client, db_path), client, db_path
 
     def test_enqueue_creates_row(self, tmp_path):
-        q, client, db_path = self._make_queue(tmp_path)
+        q, client, _db_path = self._make_queue(tmp_path)
         q.enqueue("user1", "sess1", [{"role": "user", "content": "hi"}])
         # Give the writer thread a moment to process
         time.sleep(1)
@@ -214,7 +208,7 @@ class TestWriteQueue:
         q.shutdown()
 
     def test_flush_deletes_row_on_success(self, tmp_path):
-        q, client, db_path = self._make_queue(tmp_path)
+        q, _client, db_path = self._make_queue(tmp_path)
         q.enqueue("user1", "sess1", [{"role": "user", "content": "hi"}])
         time.sleep(1)
         q.shutdown()

@@ -6,8 +6,7 @@ isinstance(model, dict)) to silently fail — leaving the provider unset and
 falling back to auto-detection.
 """
 
-import os
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 import pytest
 
@@ -81,8 +80,8 @@ class TestProviderPersistsAfterModelSave:
         # Simulate: user has a Kimi API key, model was a string
         monkeypatch.setenv("KIMI_API_KEY", "sk-kimi-test-key")
 
-        from hermes_cli.main import _model_flow_api_key_provider
         from hermes_cli.config import load_config
+        from hermes_cli.main import _model_flow_api_key_provider
 
         # Mock the model selection prompt to return "kimi-k2.5"
         # Also mock input() for the base URL prompt and builtins.input
@@ -102,8 +101,8 @@ class TestProviderPersistsAfterModelSave:
 
     def test_copilot_provider_saved_when_selected(self, config_home):
         """_model_flow_copilot should persist provider/base_url/model together."""
-        from hermes_cli.main import _model_flow_copilot
         from hermes_cli.config import load_config
+        from hermes_cli.main import _model_flow_copilot
 
         with patch(
             "hermes_cli.auth.resolve_api_key_provider_credentials",
@@ -151,8 +150,8 @@ class TestProviderPersistsAfterModelSave:
 
     def test_copilot_acp_provider_saved_when_selected(self, config_home):
         """_model_flow_copilot_acp should persist provider/base_url/model together."""
-        from hermes_cli.main import _model_flow_copilot_acp
         from hermes_cli.config import load_config
+        from hermes_cli.main import _model_flow_copilot_acp
 
         with patch(
             "hermes_cli.auth.get_external_process_provider_status",
@@ -212,8 +211,8 @@ class TestProviderPersistsAfterModelSave:
         assert model.get("api_mode") == "chat_completions"
 
     def test_opencode_go_models_are_selectable_and_persist_normalized(self, config_home, monkeypatch):
-        from hermes_cli.main import _model_flow_api_key_provider
         from hermes_cli.config import load_config
+        from hermes_cli.main import _model_flow_api_key_provider
 
         monkeypatch.setenv("OPENCODE_GO_API_KEY", "test-key")
 
@@ -232,8 +231,8 @@ class TestProviderPersistsAfterModelSave:
         assert model.get("api_mode") == "chat_completions"
 
     def test_opencode_go_same_provider_switch_recomputes_api_mode(self, config_home, monkeypatch):
-        from hermes_cli.main import _model_flow_api_key_provider
         from hermes_cli.config import load_config
+        from hermes_cli.main import _model_flow_api_key_provider
 
         monkeypatch.setenv("OPENCODE_GO_API_KEY", "test-key")
         (config_home / "config.yaml").write_text(
@@ -272,8 +271,8 @@ class TestBaseUrlValidation:
 
         monkeypatch.setenv("GLM_API_KEY", "test-key")
 
+        from hermes_cli.config import get_env_value, load_config
         from hermes_cli.main import _model_flow_api_key_provider
-        from hermes_cli.config import load_config, get_env_value
 
         # User types a shell command instead of a URL at the base URL prompt
         with patch("hermes_cli.auth._prompt_model_selection", return_value="glm-5"), \
@@ -298,8 +297,8 @@ class TestBaseUrlValidation:
 
         monkeypatch.setenv("GLM_API_KEY", "test-key")
 
+        from hermes_cli.config import get_env_value, load_config
         from hermes_cli.main import _model_flow_api_key_provider
-        from hermes_cli.config import load_config, get_env_value
 
         with patch("hermes_cli.auth._prompt_model_selection", return_value="glm-5"), \
              patch("hermes_cli.auth.deactivate_provider"), \
@@ -320,8 +319,8 @@ class TestBaseUrlValidation:
         monkeypatch.setenv("GLM_API_KEY", "test-key")
         monkeypatch.delenv("GLM_BASE_URL", raising=False)
 
+        from hermes_cli.config import get_env_value, load_config
         from hermes_cli.main import _model_flow_api_key_provider
-        from hermes_cli.config import load_config, get_env_value
 
         with patch("hermes_cli.auth._prompt_model_selection", return_value="glm-5"), \
              patch("hermes_cli.auth.deactivate_provider"), \

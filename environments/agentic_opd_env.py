@@ -62,16 +62,14 @@ from __future__ import annotations
 
 import asyncio
 import copy
-import json
 import logging
-import os
 import random
 import re
 import sys
 import time
 import uuid
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Any
 
 from pydantic import Field
 
@@ -80,12 +78,12 @@ _repo_root = Path(__file__).resolve().parent.parent
 if str(_repo_root) not in sys.path:
     sys.path.insert(0, str(_repo_root))
 
-from atroposlib.envs.base import ScoredDataGroup, ScoredDataItem
+from atroposlib.envs.base import ScoredDataGroup
 from atroposlib.envs.server_handling.server_manager import APIServerConfig
 from atroposlib.type_definitions import Item
 
-from environments.hermes_base_env import HermesAgentBaseEnv, HermesAgentEnvConfig
 from environments.agent_loop import AgentResult, HermesAgentLoop
+from environments.hermes_base_env import HermesAgentBaseEnv, HermesAgentEnvConfig
 from environments.tool_context import ToolContext
 
 logger = logging.getLogger(__name__)
@@ -353,7 +351,7 @@ class AgenticOPDConfig(HermesAgentEnvConfig):
     )
 
     # --- Dataset ---
-    dataset_name: Optional[str] = Field(
+    dataset_name: str | None = Field(
         default=None,
         description="HuggingFace dataset with coding tasks. "
         "Expected fields: 'task' (problem description) and 'test_code' (pytest/assert tests). "
@@ -395,7 +393,7 @@ class AgenticOPDEnv(HermesAgentBaseEnv):
     default_toolsets = ["terminal", "file"]
 
     @classmethod
-    def config_init(cls) -> Tuple[AgenticOPDConfig, List[APIServerConfig]]:
+    def config_init(cls) -> tuple[AgenticOPDConfig, list[APIServerConfig]]:
         """Default configuration."""
         env_config = AgenticOPDConfig(
             # Toolsets
@@ -642,9 +640,9 @@ class AgenticOPDEnv(HermesAgentBaseEnv):
 
     async def collect_trajectories(
         self, item: Item
-    ) -> Tuple[
-        Union[Optional[ScoredDataGroup], List[Optional[ScoredDataGroup]]],
-        List[Item],
+    ) -> tuple[
+        ScoredDataGroup | None | list[ScoredDataGroup | None],
+        list[Item],
     ]:
         """
         Override collect_trajectories to add the OPD pipeline.
@@ -686,11 +684,11 @@ class AgenticOPDEnv(HermesAgentBaseEnv):
             logger.debug("OPD: No messages or tokens to process")
             return
 
-        all_distill_token_ids: List[Optional[List[List[int]]]] = []
-        all_distill_logprobs: List[Optional[List[List[float]]]] = []
+        all_distill_token_ids: list[list[list[int]] | None] = []
+        all_distill_logprobs: list[list[list[float]] | None] = []
 
         for seq_idx, (messages, student_tokens) in enumerate(
-            zip(messages_list, tokens_list)
+            zip(messages_list, tokens_list, strict=False)
         ):
             try:
                 distill_ids, distill_lps = await self._opd_for_sequence(
@@ -725,8 +723,8 @@ class AgenticOPDEnv(HermesAgentBaseEnv):
             )
 
     async def _opd_for_sequence(
-        self, messages: List[Dict], student_tokens: List[int]
-    ) -> Tuple[List[List[int]], List[List[float]]]:
+        self, messages: list[dict], student_tokens: list[int]
+    ) -> tuple[list[list[int]], list[list[float]]]:
         """
         Run OPD for a single rollout sequence.
 
@@ -742,8 +740,8 @@ class AgenticOPDEnv(HermesAgentBaseEnv):
         seq_len = len(student_tokens)
 
         # Initialize with zeros (no distill info = neutral)
-        distill_token_ids: List[List[int]] = [[0] * k for _ in range(seq_len)]
-        distill_logprobs: List[List[float]] = [[0.0] * k for _ in range(seq_len)]
+        distill_token_ids: list[list[int]] = [[0] * k for _ in range(seq_len)]
+        distill_logprobs: list[list[float]] = [[0.0] * k for _ in range(seq_len)]
 
         # Find (assistant, next_state) turn pairs
         turn_pairs = self._extract_turn_pairs(messages)
@@ -860,8 +858,8 @@ class AgenticOPDEnv(HermesAgentBaseEnv):
         return distill_token_ids, distill_logprobs
 
     def _extract_turn_pairs(
-        self, messages: List[Dict]
-    ) -> List[Dict[str, Any]]:
+        self, messages: list[dict]
+    ) -> list[dict[str, Any]]:
         """
         Walk conversation messages to find (assistant, next_state) pairs.
 
@@ -931,7 +929,7 @@ class AgenticOPDEnv(HermesAgentBaseEnv):
         assistant_text: str,
         next_state_text: str,
         next_state_role: str,
-    ) -> Optional[str]:
+    ) -> str | None:
         """
         Extract a hindsight hint from a next-state signal using majority-voted LLM judge.
 
@@ -979,8 +977,8 @@ class AgenticOPDEnv(HermesAgentBaseEnv):
 
     @staticmethod
     def _find_token_span(
-        full_tokens: List[int], sub_tokens: List[int]
-    ) -> Optional[int]:
+        full_tokens: list[int], sub_tokens: list[int]
+    ) -> int | None:
         """
         Find where sub_tokens appears in full_tokens.
         Returns the start index, or None if not found.
@@ -1030,7 +1028,7 @@ class AgenticOPDEnv(HermesAgentBaseEnv):
             )
 
             try:
-                messages: List[Dict[str, Any]] = []
+                messages: list[dict[str, Any]] = []
                 if self.config.system_prompt:
                     messages.append(
                         {"role": "system", "content": self.config.system_prompt}
@@ -1156,7 +1154,7 @@ class AgenticOPDEnv(HermesAgentBaseEnv):
     # 7. wandb_log — custom OPD metrics
     # ═══════════════════════════════════════════════════════════════════
 
-    async def wandb_log(self, wandb_metrics: Optional[Dict] = None) -> None:
+    async def wandb_log(self, wandb_metrics: dict | None = None) -> None:
         """Log reward breakdown and OPD-specific metrics to wandb."""
         if wandb_metrics is None:
             wandb_metrics = {}

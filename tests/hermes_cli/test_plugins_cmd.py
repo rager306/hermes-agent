@@ -3,9 +3,6 @@
 from __future__ import annotations
 
 import logging
-import os
-import types
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -19,7 +16,6 @@ from hermes_cli.plugins_cmd import (
     _sanitize_plugin_name,
     plugins_command,
 )
-
 
 # ── _sanitize_plugin_name ─────────────────────────────────────────────────
 
@@ -216,8 +212,8 @@ class TestCmdInstall:
     """Test the install command."""
 
     def test_install_requires_identifier(self):
+
         from hermes_cli.plugins_cmd import cmd_install
-        import argparse
 
         with pytest.raises(SystemExit):
             cmd_install("")
@@ -391,7 +387,6 @@ class TestCopyExampleFiles:
     """Test example file copying."""
 
     def test_copies_example_files(self, tmp_path):
-        from hermes_cli.plugins_cmd import _copy_example_files
         from unittest.mock import MagicMock
 
         console = MagicMock()
@@ -407,7 +402,6 @@ class TestCopyExampleFiles:
         console.print.assert_called()
 
     def test_skips_existing_files(self, tmp_path):
-        from hermes_cli.plugins_cmd import _copy_example_files
         from unittest.mock import MagicMock
 
         console = MagicMock()
@@ -424,7 +418,6 @@ class TestCopyExampleFiles:
         assert real_file.read_text() == "existing: true"
 
     def test_handles_copy_error_gracefully(self, tmp_path):
-        from hermes_cli.plugins_cmd import _copy_example_files
         from unittest.mock import MagicMock, patch
 
         console = MagicMock()
@@ -449,16 +442,18 @@ class TestPromptPluginEnvVars:
     """Tests for _prompt_plugin_env_vars."""
 
     def test_skips_when_no_requires_env(self):
-        from hermes_cli.plugins_cmd import _prompt_plugin_env_vars
         from unittest.mock import MagicMock
+
+        from hermes_cli.plugins_cmd import _prompt_plugin_env_vars
 
         console = MagicMock()
         _prompt_plugin_env_vars({}, console)
         console.print.assert_not_called()
 
     def test_skips_already_set_vars(self, monkeypatch):
-        from hermes_cli.plugins_cmd import _prompt_plugin_env_vars
         from unittest.mock import MagicMock, patch
+
+        from hermes_cli.plugins_cmd import _prompt_plugin_env_vars
 
         console = MagicMock()
         with patch("hermes_cli.config.get_env_value", return_value="already-set"):
@@ -467,8 +462,9 @@ class TestPromptPluginEnvVars:
         console.print.assert_not_called()
 
     def test_prompts_for_missing_var_simple_format(self):
-        from hermes_cli.plugins_cmd import _prompt_plugin_env_vars
         from unittest.mock import MagicMock, patch
+
+        from hermes_cli.plugins_cmd import _prompt_plugin_env_vars
 
         console = MagicMock()
         manifest = {
@@ -484,8 +480,9 @@ class TestPromptPluginEnvVars:
         mock_save.assert_called_once_with("MY_API_KEY", "sk-test-123")
 
     def test_prompts_for_missing_var_rich_format(self):
-        from hermes_cli.plugins_cmd import _prompt_plugin_env_vars
         from unittest.mock import MagicMock, patch
+
+        from hermes_cli.plugins_cmd import _prompt_plugin_env_vars
 
         console = MagicMock()
         manifest = {
@@ -511,8 +508,9 @@ class TestPromptPluginEnvVars:
         assert "langfuse.com" in printed
 
     def test_secret_uses_getpass(self):
-        from hermes_cli.plugins_cmd import _prompt_plugin_env_vars
         from unittest.mock import MagicMock, patch
+
+        from hermes_cli.plugins_cmd import _prompt_plugin_env_vars
 
         console = MagicMock()
         manifest = {
@@ -528,8 +526,9 @@ class TestPromptPluginEnvVars:
         mock_gp.assert_called_once()
 
     def test_empty_input_skips(self):
-        from hermes_cli.plugins_cmd import _prompt_plugin_env_vars
         from unittest.mock import MagicMock, patch
+
+        from hermes_cli.plugins_cmd import _prompt_plugin_env_vars
 
         console = MagicMock()
         manifest = {"name": "test", "requires_env": ["OPTIONAL_VAR"]}
@@ -542,8 +541,9 @@ class TestPromptPluginEnvVars:
         mock_save.assert_not_called()
 
     def test_keyboard_interrupt_skips_gracefully(self):
-        from hermes_cli.plugins_cmd import _prompt_plugin_env_vars
         from unittest.mock import MagicMock, patch
+
+        from hermes_cli.plugins_cmd import _prompt_plugin_env_vars
 
         console = MagicMock()
         manifest = {"name": "test", "requires_env": ["KEY1", "KEY2"]}

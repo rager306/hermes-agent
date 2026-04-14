@@ -9,17 +9,17 @@ import pytest
 
 import tools.skills_tool as skills_tool_module
 from tools.skills_tool import (
+    MAX_DESCRIPTION_LENGTH,
+    _estimate_tokens,
+    _find_all_skills,
+    _get_category_from_path,
     _get_required_environment_variables,
     _parse_frontmatter,
     _parse_tags,
-    _get_category_from_path,
-    _estimate_tokens,
-    _find_all_skills,
     skill_matches_platform,
-    skills_list,
-    skills_categories,
     skill_view,
-    MAX_DESCRIPTION_LENGTH,
+    skills_categories,
+    skills_list,
 )
 
 
@@ -67,20 +67,20 @@ class TestParseFrontmatter:
 
     def test_empty_frontmatter(self):
         content = "---\n---\n\n# Body\n"
-        fm, body = _parse_frontmatter(content)
+        fm, _body = _parse_frontmatter(content)
         assert fm == {}
 
     def test_nested_yaml(self):
         content = (
             "---\nname: test\nmetadata:\n  hermes:\n    tags: [a, b]\n---\n\nBody.\n"
         )
-        fm, body = _parse_frontmatter(content)
+        fm, _body = _parse_frontmatter(content)
         assert fm["metadata"]["hermes"]["tags"] == ["a", "b"]
 
     def test_malformed_yaml_fallback(self):
         """Malformed YAML falls back to simple key:value parsing."""
         content = "---\nname: test\ndescription: desc\n: invalid\n---\n\nBody.\n"
-        fm, body = _parse_frontmatter(content)
+        fm, _body = _parse_frontmatter(content)
         # Should still parse what it can via fallback
         assert "name" in fm
 

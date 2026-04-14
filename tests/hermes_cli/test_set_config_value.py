@@ -2,12 +2,11 @@
 
 import argparse
 import os
-from pathlib import Path
-from unittest.mock import patch, call
+from unittest.mock import patch
 
 import pytest
 
-from hermes_cli.config import set_config_value, config_command
+from hermes_cli.config import config_command, set_config_value
 
 
 @pytest.fixture(autouse=True)

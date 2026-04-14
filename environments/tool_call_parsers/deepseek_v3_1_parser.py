@@ -11,7 +11,6 @@ Based on VLLM's DeepSeekV31ToolParser.extract_tool_calls()
 
 import re
 import uuid
-from typing import List, Optional
 
 from openai.types.chat.chat_completion_message_tool_call import (
     ChatCompletionMessageToolCall,
@@ -48,7 +47,7 @@ class DeepSeekV31ToolCallParser(ToolCallParser):
             if not matches:
                 return text, None
 
-            tool_calls: List[ChatCompletionMessageToolCall] = []
+            tool_calls: list[ChatCompletionMessageToolCall] = []
             for match in matches:
                 func_name, func_args = match
                 tool_calls.append(

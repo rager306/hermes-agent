@@ -7,9 +7,10 @@ import logging
 import os
 import threading
 from pathlib import Path
+
+from agent.redact import redact_sensitive_text
 from tools.binary_extensions import has_binary_extension
 from tools.file_operations import ShellFileOperations
-from agent.redact import redact_sensitive_text
 
 logger = logging.getLogger(__name__)
 
@@ -159,13 +160,18 @@ def _get_file_ops(task_id: str = "default") -> ShellFileOperations:
     Thread-safe: uses the same per-task creation locks as terminal_tool to
     prevent duplicate sandbox creation from concurrent tool calls.
     """
+    import time
+
     from tools.terminal_tool import (
-        _active_environments, _env_lock, _create_environment,
-        _get_env_config, _last_activity, _start_cleanup_thread,
+        _active_environments,
+        _create_environment,
         _creation_locks,
         _creation_locks_lock,
+        _env_lock,
+        _get_env_config,
+        _last_activity,
+        _start_cleanup_thread,
     )
-    import time
 
     # Fast path: check cache -- but also verify the underlying environment
     # is still alive (it may have been killed by the cleanup thread).
@@ -270,7 +276,7 @@ def _get_file_ops(task_id: str = "default") -> ShellFileOperations:
     return file_ops
 
 
-def clear_file_ops_cache(task_id: str = None):
+def clear_file_ops_cache(task_id: str | None = None):
     """Clear the file operations cache."""
     with _file_ops_lock:
         if task_id:
@@ -469,7 +475,7 @@ def get_read_files_summary(task_id: str = "default") -> list:
         ]
 
 
-def clear_read_tracker(task_id: str = None):
+def clear_read_tracker(task_id: str | None = None):
     """Clear the read tracker.
 
     Call with a task_id to clear just that task, or without to clear all.
@@ -483,7 +489,7 @@ def clear_read_tracker(task_id: str = None):
             _read_tracker.clear()
 
 
-def reset_file_dedup(task_id: str = None):
+def reset_file_dedup(task_id: str | None = None):
     """Clear the deduplication cache for file reads.
 
     Called after context compression — the original read content has been
@@ -594,8 +600,8 @@ def write_file_tool(path: str, content: str, task_id: str = "default") -> str:
         return tool_error(str(e))
 
 
-def patch_tool(mode: str = "replace", path: str = None, old_string: str = None,
-               new_string: str = None, replace_all: bool = False, patch: str = None,
+def patch_tool(mode: str = "replace", path: str | None = None, old_string: str | None = None,
+               new_string: str | None = None, replace_all: bool = False, patch: str | None = None,
                task_id: str = "default") -> str:
     """Patch a file using replace mode or V4A patch format."""
     # Check sensitive paths for both replace (explicit path) and V4A patch (extract paths)
@@ -619,7 +625,7 @@ def patch_tool(mode: str = "replace", path: str = None, old_string: str = None,
                 stale_warnings.append(_sw)
 
         file_ops = _get_file_ops(task_id)
-        
+
         if mode == "replace":
             if not path:
                 return tool_error("path required")
@@ -632,7 +638,7 @@ def patch_tool(mode: str = "replace", path: str = None, old_string: str = None,
             result = file_ops.patch_v4a(patch)
         else:
             return tool_error(f"Unknown mode: {mode}")
-        
+
         result_dict = result.to_dict()
         if stale_warnings:
             result_dict["_warning"] = stale_warnings[0] if len(stale_warnings) == 1 else " | ".join(stale_warnings)
@@ -652,7 +658,7 @@ def patch_tool(mode: str = "replace", path: str = None, old_string: str = None,
 
 
 def search_tool(pattern: str, target: str = "content", path: str = ".",
-                file_glob: str = None, limit: int = 50, offset: int = 0,
+                file_glob: str | None = None, limit: int = 50, offset: int = 0,
                 output_mode: str = "content", context: int = 0,
                 task_id: str = "default") -> str:
     """Search for content or files."""

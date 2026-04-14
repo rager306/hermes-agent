@@ -15,8 +15,8 @@ import asyncio
 import sys
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
 import httpx
+import pytest
 
 # ---------------------------------------------------------------------------
 # Helpers for building httpx exceptions
@@ -532,11 +532,12 @@ def _ensure_slack_mock():
 
 _ensure_slack_mock()
 
-import gateway.platforms.slack as _slack_mod  # noqa: E402
+import gateway.platforms.slack as _slack_mod
+
 _slack_mod.SLACK_AVAILABLE = True
 
-from gateway.platforms.slack import SlackAdapter  # noqa: E402
-from gateway.config import Platform, PlatformConfig  # noqa: E402
+from gateway.config import PlatformConfig
+from gateway.platforms.slack import SlackAdapter
 
 
 def _make_slack_adapter():

@@ -10,12 +10,13 @@ Adapt this for your specific task by modifying:
 4. Hyperparameters (GRPOConfig)
 """
 
-import torch
 import re
+
+import torch
 from datasets import load_dataset
-from transformers import AutoModelForCausalLM, AutoTokenizer
 from peft import LoraConfig
-from trl import GRPOTrainer, GRPOConfig
+from transformers import AutoModelForCausalLM, AutoTokenizer
+from trl import GRPOConfig, GRPOTrainer
 
 # ==================== CONFIGURATION ====================
 
@@ -82,7 +83,7 @@ def correctness_reward_func(prompts, completions, answer, **kwargs):
     """
     responses = [comp[0]['content'] for comp in completions]
     extracted = [extract_answer(r) for r in responses]
-    return [2.0 if ans == gt else 0.0 for ans, gt in zip(extracted, answer)]
+    return [2.0 if ans == gt else 0.0 for ans, gt in zip(extracted, answer, strict=False)]
 
 def format_reward_func(completions, **kwargs):
     """

@@ -12,17 +12,15 @@ import os
 import tempfile
 import time
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 from tools.file_tools import (
-    read_file_tool,
-    clear_read_tracker,
-    reset_file_dedup,
-    _is_blocked_device,
-    _get_max_read_chars,
     _DEFAULT_MAX_READ_CHARS,
+    _is_blocked_device,
+    clear_read_tracker,
+    read_file_tool,
+    reset_file_dedup,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers

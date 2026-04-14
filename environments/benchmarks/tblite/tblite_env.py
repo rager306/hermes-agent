@@ -24,16 +24,14 @@ Usage:
 import os
 import sys
 from pathlib import Path
-from typing import List, Tuple
 
 _repo_root = Path(__file__).resolve().parent.parent.parent.parent
 if str(_repo_root) not in sys.path:
     sys.path.insert(0, str(_repo_root))
 
-from pydantic import Field
-
 from atroposlib.envs.base import EvalHandlingEnum
 from atroposlib.envs.server_handling.server_manager import APIServerConfig
+from pydantic import Field
 
 from environments.benchmarks.terminalbench_2.terminalbench2_env import (
     TerminalBench2EvalConfig,
@@ -72,7 +70,7 @@ class TBLiteEvalEnv(TerminalBench2EvalEnv):
     env_config_cls = TBLiteEvalConfig
 
     @classmethod
-    def config_init(cls) -> Tuple[TBLiteEvalConfig, List[APIServerConfig]]:
+    def config_init(cls) -> tuple[TBLiteEvalConfig, list[APIServerConfig]]:
         env_config = TBLiteEvalConfig(
             enabled_toolsets=["terminal", "file"],
             disabled_toolsets=None,

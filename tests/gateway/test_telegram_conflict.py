@@ -34,7 +34,7 @@ def _ensure_telegram_mock():
 
 _ensure_telegram_mock()
 
-from gateway.platforms.telegram import TelegramAdapter  # noqa: E402
+from gateway.platforms.telegram import TelegramAdapter
 
 
 @pytest.fixture(autouse=True)
@@ -191,7 +191,7 @@ async def test_polling_conflict_becomes_fatal_after_retries(monkeypatch):
 
     # Directly call _handle_polling_conflict to avoid event-loop scheduling
     # complexity.  Each call simulates one 409 from Telegram.
-    for i in range(4):
+    for _i in range(4):
         await adapter._handle_polling_conflict(
             conflict("Conflict: terminated by other getUpdates request")
         )

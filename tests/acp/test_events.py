@@ -4,10 +4,8 @@ import asyncio
 from concurrent.futures import Future
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
-
 import acp
-from acp.schema import ToolCallStart, ToolCallProgress, AgentThoughtChunk, AgentMessageChunk
+import pytest
 
 from acp_adapter.events import (
     make_message_cb,

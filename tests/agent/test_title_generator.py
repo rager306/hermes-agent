@@ -1,13 +1,10 @@
 """Tests for agent.title_generator — auto-generated session titles."""
 
-import threading
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from agent.title_generator import (
-    generate_title,
     auto_title_session,
+    generate_title,
     maybe_auto_title,
 )
 

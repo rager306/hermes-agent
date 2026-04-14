@@ -6,8 +6,7 @@ immediately when provider_info had a saved ``model`` field, making it
 impossible to switch models on multi-model endpoints.
 """
 
-import os
-from unittest.mock import patch, MagicMock, call
+from unittest.mock import patch
 
 import pytest
 
@@ -57,6 +56,7 @@ class TestCustomProviderModelSwitch:
     def test_can_switch_to_different_model(self, config_home):
         """User selects a different model than the saved one."""
         import yaml
+
         from hermes_cli.main import _model_flow_named_custom
 
         provider_info = {
@@ -80,6 +80,7 @@ class TestCustomProviderModelSwitch:
     def test_probe_failure_falls_back_to_saved(self, config_home):
         """When endpoint probe fails and user presses Enter, saved model is used."""
         import yaml
+
         from hermes_cli.main import _model_flow_named_custom
 
         provider_info = {
@@ -103,6 +104,7 @@ class TestCustomProviderModelSwitch:
     def test_no_saved_model_still_works(self, config_home):
         """First-time flow (no saved model) still works as before."""
         import yaml
+
         from hermes_cli.main import _model_flow_named_custom
 
         provider_info = {
@@ -126,6 +128,7 @@ class TestCustomProviderModelSwitch:
     def test_api_mode_set_from_provider_info(self, config_home):
         """When custom_providers entry has api_mode, it should be applied."""
         import yaml
+
         from hermes_cli.main import _model_flow_named_custom
 
         provider_info = {
@@ -150,6 +153,7 @@ class TestCustomProviderModelSwitch:
     def test_api_mode_cleared_when_not_specified(self, config_home):
         """When custom_providers entry has no api_mode, stale api_mode is removed."""
         import yaml
+
         from hermes_cli.main import _model_flow_named_custom
 
         # Pre-seed a stale api_mode in config

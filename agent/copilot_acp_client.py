@@ -241,7 +241,7 @@ def _ensure_path_within_cwd(path_text: str, cwd: str) -> Path:
 
 
 class _ACPChatCompletions:
-    def __init__(self, client: "CopilotACPClient"):
+    def __init__(self, client: CopilotACPClient):
         self._client = client
 
     def create(self, **kwargs: Any) -> Any:
@@ -249,7 +249,7 @@ class _ACPChatCompletions:
 
 
 class _ACPChatNamespace:
-    def __init__(self, client: "CopilotACPClient"):
+    def __init__(self, client: CopilotACPClient):
         self.completions = _ACPChatCompletions(client)
 
 
@@ -344,7 +344,7 @@ class CopilotACPClient:
     def _run_prompt(self, prompt_text: str, *, timeout_seconds: float) -> tuple[str, str]:
         try:
             proc = subprocess.Popen(
-                [self._acp_command] + self._acp_args,
+                [self._acp_command, *self._acp_args],
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,

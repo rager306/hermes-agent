@@ -15,11 +15,8 @@ from datetime import datetime
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
-import pytest
-
 from gateway.config import GatewayConfig, Platform, PlatformConfig
 from gateway.session import SessionEntry, SessionSource, build_session_key
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -178,7 +175,7 @@ class TestApplySessionModelOverride:
             "api_mode": "chat_completions",
         }
 
-        model, rt = runner._apply_session_model_override(
+        model, _rt = runner._apply_session_model_override(
             sk,
             "anthropic/claude-sonnet-4",
             {"provider": "anthropic", "api_key": "ant-key", "base_url": "url", "api_mode": "anthropic_messages"},

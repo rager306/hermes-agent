@@ -1,16 +1,17 @@
 """Tests for OSV malware check on MCP extension packages."""
 
 import json
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 
 from tools.osv_check import (
-    check_package_for_malware,
     _infer_ecosystem,
-    _parse_package_from_args,
     _parse_npm_package,
+    _parse_package_from_args,
     _parse_pypi_package,
     _query_osv,
+    check_package_for_malware,
 )
 
 
@@ -72,7 +73,7 @@ class TestParsePackageFromArgs:
         assert ver == "1.0"
 
     def test_pypi_skips_flags(self):
-        name, ver = _parse_package_from_args(["--from", "mcp[cli]"], "PyPI")
+        name, _ver = _parse_package_from_args(["--from", "mcp[cli]"], "PyPI")
         # --from is a flag, mcp[cli] is the package
         # Actually --from is a flag so it gets skipped, mcp[cli] is found
         assert name == "mcp"

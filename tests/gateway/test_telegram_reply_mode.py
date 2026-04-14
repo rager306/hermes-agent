@@ -7,11 +7,11 @@ Covers the threading behavior control for multi-chunk replies:
 """
 import os
 import sys
-from unittest.mock import MagicMock, AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from gateway.config import PlatformConfig, GatewayConfig, Platform, _apply_env_overrides
+from gateway.config import GatewayConfig, Platform, PlatformConfig, _apply_env_overrides
 
 
 def _ensure_telegram_mock():
@@ -31,7 +31,7 @@ def _ensure_telegram_mock():
 
 _ensure_telegram_mock()
 
-from gateway.platforms.telegram import TelegramAdapter  # noqa: E402
+from gateway.platforms.telegram import TelegramAdapter
 
 
 @pytest.fixture()

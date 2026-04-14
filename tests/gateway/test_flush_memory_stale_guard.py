@@ -9,9 +9,10 @@ Verifies that:
 
 import sys
 import types
-import pytest
 from pathlib import Path
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 
 @pytest.fixture(autouse=True)
@@ -190,7 +191,8 @@ class TestFlushAgentSilenced:
         assert written == [("hello",)], "spinner should route through print_fn"
 
         # A no-op print_fn must produce no output to stdout
-        import io, sys
+        import io
+        import sys
         buf = io.StringIO()
         old_stdout = sys.stdout
         sys.stdout = buf

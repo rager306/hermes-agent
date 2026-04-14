@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
+import logging
 import queue
 import re
-import logging
 import threading
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from plugins.memory.honcho.client import get_honcho_client
 
@@ -294,7 +294,7 @@ class HonchoSessionManager:
         assistant_peer = self._get_or_create_peer(assistant_peer_id)
 
         # Get or create Honcho session
-        honcho_session, existing_messages = self._get_or_create_honcho_session(
+        _honcho_session, existing_messages = self._get_or_create_honcho_session(
             honcho_session_id, user_peer, assistant_peer
         )
 

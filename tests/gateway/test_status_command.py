@@ -159,9 +159,10 @@ async def test_status_command_bypasses_active_session_guard():
     """When an agent is running, /status must be dispatched immediately via
     base.handle_message — not queued or treated as an interrupt (#5046)."""
     import asyncio
+
+    from gateway.config import Platform, PlatformConfig
     from gateway.platforms.base import BasePlatformAdapter, MessageEvent, MessageType
     from gateway.session import build_session_key
-    from gateway.config import Platform, PlatformConfig, GatewayConfig
 
     source = _make_source()
     session_key = build_session_key(source)

@@ -1,8 +1,8 @@
 """Tests for native Discord slash command fast-paths (thread creation & auto-thread)."""
 
-from types import SimpleNamespace
-from unittest.mock import AsyncMock, MagicMock, patch
 import sys
+from types import SimpleNamespace
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -37,7 +37,7 @@ def _ensure_discord_mock():
 
 _ensure_discord_mock()
 
-from gateway.platforms.discord import DiscordAdapter  # noqa: E402
+from gateway.platforms.discord import DiscordAdapter
 
 
 class FakeTree:
@@ -333,7 +333,7 @@ async def test_auto_create_thread_returns_none_on_failure(adapter):
 # ------------------------------------------------------------------
 
 
-import discord as _discord_mod  # noqa: E402 — mock or real, used below
+import discord as _discord_mod
 
 
 class _FakeTextChannel:
@@ -478,8 +478,9 @@ async def test_auto_thread_skips_threads_and_dms(adapter, monkeypatch):
 
 def test_discord_auto_thread_config_bridge(monkeypatch, tmp_path):
     """discord.auto_thread in config.yaml should be bridged to DISCORD_AUTO_THREAD env var."""
-    import yaml
     from pathlib import Path
+
+    import yaml
 
     # Write a config.yaml the loader will find
     hermes_dir = tmp_path / ".hermes"

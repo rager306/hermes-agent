@@ -12,8 +12,6 @@ Based on VLLM's KimiK2ToolParser.extract_tool_calls()
 """
 
 import re
-import uuid
-from typing import List, Optional
 
 from openai.types.chat.chat_completion_message_tool_call import (
     ChatCompletionMessageToolCall,
@@ -58,7 +56,7 @@ class KimiK2ToolCallParser(ToolCallParser):
             if not matches:
                 return text, None
 
-            tool_calls: List[ChatCompletionMessageToolCall] = []
+            tool_calls: list[ChatCompletionMessageToolCall] = []
             for match in matches:
                 function_id, function_args = match
 

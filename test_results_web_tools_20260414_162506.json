@@ -1,0 +1,72 @@
+{
+  "test_suite": "Web Tools",
+  "start_time": "2026-04-14T16:23:15.380083",
+  "end_time": "2026-04-14T16:25:06.156499",
+  "duration_seconds": 110.776416,
+  "summary": {
+    "passed": 8,
+    "failed": 0,
+    "skipped": 0
+  },
+  "results": {
+    "passed": [
+      {
+        "test": "Web Backend API Key",
+        "status": "passed",
+        "details": "Using firecrawl backend",
+        "timestamp": "2026-04-14T16:23:15.398907"
+      },
+      {
+        "test": "Auxiliary LLM",
+        "status": "passed",
+        "details": "Found",
+        "timestamp": "2026-04-14T16:23:15.474486"
+      },
+      {
+        "test": "Search: Python web scraping tutorial...",
+        "status": "passed",
+        "details": "All 5 results valid",
+        "timestamp": "2026-04-14T16:23:16.553767"
+      },
+      {
+        "test": "Search: Firecrawl API documentation...",
+        "status": "passed",
+        "details": "All 3 results valid",
+        "timestamp": "2026-04-14T16:23:17.609064"
+      },
+      {
+        "test": "Search: inflammatory arthritis symptom...",
+        "status": "passed",
+        "details": "All 8 results valid",
+        "timestamp": "2026-04-14T16:23:19.218522"
+      },
+      {
+        "test": "Extract (no LLM)",
+        "status": "passed",
+        "details": "2/2 pages extracted, 92029 total chars",
+        "timestamp": "2026-04-14T16:23:27.389862"
+      },
+      {
+        "test": "Crawl: https://docs.firecrawl.dev",
+        "status": "passed",
+        "details": "20/20 valid pages, 309651 chars total",
+        "timestamp": "2026-04-14T16:24:05.409471"
+      },
+      {
+        "test": "Crawl: https://firecrawl.dev",
+        "status": "passed",
+        "details": "20/20 valid pages, 433728 chars total",
+        "timestamp": "2026-04-14T16:25:06.156474"
+      }
+    ],
+    "failed": [],
+    "skipped": []
+  },
+  "environment": {
+    "web_backend": "firecrawl",
+    "firecrawl_api_key": true,
+    "parallel_api_key": false,
+    "auxiliary_model": true,
+    "debug_mode": false
+  }
+}

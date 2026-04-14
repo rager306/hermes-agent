@@ -1,0 +1,73 @@
+{
+  "test_suite": "Web Tools",
+  "start_time": "2026-04-14T16:14:01.377099",
+  "end_time": "2026-04-14T16:14:06.461060",
+  "duration_seconds": 5.083961,
+  "summary": {
+    "passed": 6,
+    "failed": 2,
+    "skipped": 0
+  },
+  "results": {
+    "passed": [
+      {
+        "test": "Web Backend API Key",
+        "status": "passed",
+        "details": "Using tavily backend",
+        "timestamp": "2026-04-14T16:14:01.398585"
+      },
+      {
+        "test": "Auxiliary LLM",
+        "status": "passed",
+        "details": "Found",
+        "timestamp": "2026-04-14T16:14:01.518598"
+      },
+      {
+        "test": "Search: Python web scraping tutorial...",
+        "status": "passed",
+        "details": "All 5 results valid",
+        "timestamp": "2026-04-14T16:14:02.624522"
+      },
+      {
+        "test": "Search: Firecrawl API documentation...",
+        "status": "passed",
+        "details": "All 3 results valid",
+        "timestamp": "2026-04-14T16:14:03.921899"
+      },
+      {
+        "test": "Search: inflammatory arthritis symptom...",
+        "status": "passed",
+        "details": "All 8 results valid",
+        "timestamp": "2026-04-14T16:14:04.966220"
+      },
+      {
+        "test": "Extract (no LLM)",
+        "status": "passed",
+        "details": "2/2 pages extracted, 23465 total chars",
+        "timestamp": "2026-04-14T16:14:05.532811"
+      }
+    ],
+    "failed": [
+      {
+        "test": "Crawl: https://docs.firecrawl.dev",
+        "status": "failed",
+        "details": "API error: Error crawling website: Client error '401 Unauthorized' for url 'https://api.tavily.com/crawl'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401",
+        "timestamp": "2026-04-14T16:14:06.010210"
+      },
+      {
+        "test": "Crawl: https://firecrawl.dev",
+        "status": "failed",
+        "details": "API error: Error crawling website: Client error '401 Unauthorized' for url 'https://api.tavily.com/crawl'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401",
+        "timestamp": "2026-04-14T16:14:06.461027"
+      }
+    ],
+    "skipped": []
+  },
+  "environment": {
+    "web_backend": "tavily",
+    "firecrawl_api_key": true,
+    "parallel_api_key": false,
+    "auxiliary_model": true,
+    "debug_mode": false
+  }
+}

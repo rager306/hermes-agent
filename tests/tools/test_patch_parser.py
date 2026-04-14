@@ -30,7 +30,7 @@ class TestParseUpdateFile:
 
         hunk = op.hunks[0]
         assert hunk.context_hint == "def greet"
-        prefixes = [l.prefix for l in hunk.lines]
+        prefixes = [ln.prefix for ln in hunk.lines]
         assert " " in prefixes
         assert "-" in prefixes
         assert "+" in prefixes
@@ -74,7 +74,7 @@ class TestParseAddFile:
         assert op.file_path == "new/module.py"
         assert len(op.hunks) == 1
 
-        contents = [l.content for l in op.hunks[0].lines if l.prefix == "+"]
+        contents = [ln.content for ln in op.hunks[0].lines if ln.prefix == "+"]
         assert contents[0] == "import os"
         assert contents[2] == 'print("hello")'
 
@@ -206,7 +206,7 @@ class TestAdditionOnlyHunks:
 
         hunk = ops[0].hunks[0]
         # All lines should be additions
-        assert all(l.prefix == '+' for l in hunk.lines)
+        assert all(ln.prefix == '+' for ln in hunk.lines)
 
         # Apply to a file that contains the context hint
         class FakeFileOps:

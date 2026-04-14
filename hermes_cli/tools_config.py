@@ -13,13 +13,14 @@ import json as _json
 import logging
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Set
 
-
-from hermes_cli.config import (
-    load_config, save_config, get_env_value, save_env_value,
-)
 from hermes_cli.colors import Colors, color
+from hermes_cli.config import (
+    get_env_value,
+    load_config,
+    save_config,
+    save_env_value,
+)
 from hermes_cli.nous_subscription import (
     apply_nous_managed_defaults,
     get_nous_subscription_features,
@@ -33,11 +34,19 @@ PROJECT_ROOT = Path(__file__).parent.parent.resolve()
 
 # ─── UI Helpers (shared with setup.py) ────────────────────────────────────────
 
-from hermes_cli.cli_output import (  # noqa: E402 — late import block
+from hermes_cli.cli_output import (
     print_error as _print_error,
+)
+from hermes_cli.cli_output import (
     print_info as _print_info,
+)
+from hermes_cli.cli_output import (
     print_success as _print_success,
+)
+from hermes_cli.cli_output import (
     print_warning as _print_warning,
+)
+from hermes_cli.cli_output import (
     prompt as _prompt,
 )
 
@@ -415,7 +424,7 @@ def _run_post_setup(post_setup_key: str):
 
 # ─── Platform / Toolset Helpers ───────────────────────────────────────────────
 
-def _get_enabled_platforms() -> List[str]:
+def _get_enabled_platforms() -> list[str]:
     """Return platform keys that are configured (have tokens or are CLI)."""
     enabled = ["cli"]
     if get_env_value("TELEGRAM_BOT_TOKEN"):
@@ -429,7 +438,7 @@ def _get_enabled_platforms() -> List[str]:
     return enabled
 
 
-def _platform_toolset_summary(config: dict, platforms: Optional[List[str]] = None) -> Dict[str, Set[str]]:
+def _platform_toolset_summary(config: dict, platforms: list[str] | None = None) -> dict[str, set[str]]:
     """Return a summary of enabled toolsets per platform.
 
     When ``platforms`` is None, this uses ``_get_enabled_platforms`` to
@@ -439,7 +448,7 @@ def _platform_toolset_summary(config: dict, platforms: Optional[List[str]] = Non
     if platforms is None:
         platforms = _get_enabled_platforms()
 
-    summary: Dict[str, Set[str]] = {}
+    summary: dict[str, set[str]] = {}
     for pkey in platforms:
         summary[pkey] = _get_platform_tools(config, pkey)
     return summary
@@ -467,7 +476,7 @@ def _get_platform_tools(
     platform: str,
     *,
     include_default_mcp_servers: bool = True,
-) -> Set[str]:
+) -> set[str]:
     """Resolve which individual toolset names are enabled for a platform."""
     from toolsets import resolve_toolset
 
@@ -563,7 +572,7 @@ def _get_platform_tools(
     return enabled_toolsets
 
 
-def _save_platform_tools(config: dict, platform: str, enabled_toolset_keys: Set[str]):
+def _save_platform_tools(config: dict, platform: str, enabled_toolset_keys: set[str]):
     """Save the selected toolset keys for a platform to config.
 
     Preserves any non-configurable toolset entries (like MCP server names)
@@ -605,7 +614,7 @@ def _save_platform_tools(config: dict, platform: str, enabled_toolset_keys: Set[
     save_config(config)
 
 
-def _toolset_has_keys(ts_key: str, config: dict = None) -> bool:
+def _toolset_has_keys(ts_key: str, config: dict | None = None) -> bool:
     """Check if a toolset's required API keys are configured."""
     if config is None:
         config = load_config()
@@ -654,10 +663,10 @@ def _prompt_choice(question: str, choices: list, default: int = 0) -> int:
 # ─── Token Estimation ────────────────────────────────────────────────────────
 
 # Module-level cache so discovery + tokenization runs at most once per process.
-_tool_token_cache: Optional[Dict[str, int]] = None
+_tool_token_cache: dict[str, int] | None = None
 
 
-def _estimate_tool_tokens() -> Dict[str, int]:
+def _estimate_tool_tokens() -> dict[str, int]:
     """Return estimated token counts per individual tool name.
 
     Uses tiktoken (cl100k_base) to count tokens in the JSON-serialised
@@ -687,7 +696,7 @@ def _estimate_tool_tokens() -> Dict[str, int]:
         _tool_token_cache = {}
         return _tool_token_cache
 
-    counts: Dict[str, int] = {}
+    counts: dict[str, int] = {}
     for name in registry.get_all_tool_names():
         schema = registry.get_schema(name)
         if schema:
@@ -699,7 +708,7 @@ def _estimate_tool_tokens() -> Dict[str, int]:
     return _tool_token_cache
 
 
-def _prompt_toolset_checklist(platform_label: str, enabled: Set[str]) -> Set[str]:
+def _prompt_toolset_checklist(platform_label: str, enabled: set[str]) -> set[str]:
     """Multi-select checklist of toolsets. Returns set of selected toolset keys."""
     from hermes_cli.curses_ui import curses_checklist
     from toolsets import resolve_toolset
@@ -750,7 +759,7 @@ def _prompt_toolset_checklist(platform_label: str, enabled: Set[str]) -> Set[str
 
 def _configure_toolset(ts_key: str, config: dict):
     """Configure a toolset - provider selection + API keys.
-    
+
     Uses TOOL_CATEGORIES for provider-aware config, falls back to simple
     env var prompts for toolsets not in TOOL_CATEGORIES.
     """
@@ -1035,7 +1044,7 @@ def _configure_simple_requirements(ts_key: str):
     if not missing:
         return
 
-    ts_label = next((l for k, l, _ in _get_effective_configurable_toolsets() if k == ts_key), ts_key)
+    ts_label = next((lbl for k, lbl, _ in _get_effective_configurable_toolsets() if k == ts_key), ts_key)
     print()
     print(color(f"  {ts_label} requires configuration:", Colors.YELLOW))
 
@@ -1184,7 +1193,7 @@ def _reconfigure_simple_requirements(ts_key: str):
     if not requirements:
         return
 
-    ts_label = next((l for k, l, _ in _get_effective_configurable_toolsets() if k == ts_key), ts_key)
+    ts_label = next((lbl for k, lbl, _ in _get_effective_configurable_toolsets() if k == ts_key), ts_key)
     print()
     print(color(f"  {ts_label}:", Colors.CYAN))
 
@@ -1204,7 +1213,7 @@ def _reconfigure_simple_requirements(ts_key: str):
 
 # ─── Main Entry Point ─────────────────────────────────────────────────────────
 
-def tools_command(args=None, first_install: bool = False, config: dict = None):
+def tools_command(args=None, first_install: bool = False, config: dict | None = None):
     """Entry point for `hermes tools` and `hermes setup tools`.
 
     Args:
@@ -1234,7 +1243,7 @@ def tools_command(args=None, first_install: bool = False, config: dict = None):
             print(color(f"  {pinfo['label']}", Colors.BOLD) + color(f"  ({count}/{total})", Colors.DIM))
             if enabled:
                 for ts_key in sorted(enabled):
-                    label = next((l for k, l, _ in _get_effective_configurable_toolsets() if k == ts_key), ts_key)
+                    label = next((lbl for k, lbl, _ in _get_effective_configurable_toolsets() if k == ts_key), ts_key)
                     print(color(f"    ✓ {label}", Colors.GREEN))
             else:
                 print(color("    (none enabled)", Colors.DIM))
@@ -1262,11 +1271,11 @@ def tools_command(args=None, first_install: bool = False, config: dict = None):
             removed = current_enabled - new_enabled
             if added:
                 for ts in sorted(added):
-                    label = next((l for k, l, _ in _get_effective_configurable_toolsets() if k == ts), ts)
+                    label = next((lbl for k, lbl, _ in _get_effective_configurable_toolsets() if k == ts), ts)
                     print(color(f"  + {label}", Colors.GREEN))
             if removed:
                 for ts in sorted(removed):
-                    label = next((l for k, l, _ in _get_effective_configurable_toolsets() if k == ts), ts)
+                    label = next((lbl for k, lbl, _ in _get_effective_configurable_toolsets() if k == ts), ts)
                     print(color(f"  - {label}", Colors.RED))
 
             auto_configured = apply_nous_managed_defaults(
@@ -1275,7 +1284,7 @@ def tools_command(args=None, first_install: bool = False, config: dict = None):
             )
             if managed_nous_tools_enabled():
                 for ts_key in sorted(auto_configured):
-                    label = next((l for k, l, _ in CONFIGURABLE_TOOLSETS if k == ts_key), ts_key)
+                    label = next((lbl for k, lbl, _ in CONFIGURABLE_TOOLSETS if k == ts_key), ts_key)
                     print(color(f"  ✓ {label}: using your Nous subscription defaults", Colors.GREEN))
 
             # Walk through ALL selected tools that have provider options or
@@ -1292,7 +1301,7 @@ def tools_command(args=None, first_install: bool = False, config: dict = None):
                 print()
                 print(color(f"  Configuring {len(to_configure)} tool(s):", Colors.YELLOW))
                 for ts_key in to_configure:
-                    label = next((l for k, l, _ in _get_effective_configurable_toolsets() if k == ts_key), ts_key)
+                    label = next((lbl for k, lbl, _ in _get_effective_configurable_toolsets() if k == ts_key), ts_key)
                     print(color(f"    • {label}", Colors.DIM))
                 print(color("  You can skip any tool you don't need right now.", Colors.DIM))
                 print()
@@ -1370,10 +1379,10 @@ def tools_command(args=None, first_install: bool = False, config: dict = None):
                     if added or removed:
                         print(color(f"  {pinfo_inner['label']}:", Colors.DIM))
                         for ts in sorted(added):
-                            label = next((l for k, l, _ in _get_effective_configurable_toolsets() if k == ts), ts)
+                            label = next((lbl for k, lbl, _ in _get_effective_configurable_toolsets() if k == ts), ts)
                             print(color(f"    + {label}", Colors.GREEN))
                         for ts in sorted(removed):
-                            label = next((l for k, l, _ in _get_effective_configurable_toolsets() if k == ts), ts)
+                            label = next((lbl for k, lbl, _ in _get_effective_configurable_toolsets() if k == ts), ts)
                             print(color(f"    - {label}", Colors.RED))
                     # Configure API keys for newly enabled tools
                     for ts_key in sorted(added):
@@ -1408,11 +1417,11 @@ def tools_command(args=None, first_install: bool = False, config: dict = None):
 
             if added:
                 for ts in sorted(added):
-                    label = next((l for k, l, _ in _get_effective_configurable_toolsets() if k == ts), ts)
+                    label = next((lbl for k, lbl, _ in _get_effective_configurable_toolsets() if k == ts), ts)
                     print(color(f"  + {label}", Colors.GREEN))
             if removed:
                 for ts in sorted(removed):
-                    label = next((l for k, l, _ in _get_effective_configurable_toolsets() if k == ts), ts)
+                    label = next((lbl for k, lbl, _ in _get_effective_configurable_toolsets() if k == ts), ts)
                     print(color(f"  - {label}", Colors.RED))
 
             # Configure newly enabled toolsets that need API keys
@@ -1515,7 +1524,7 @@ def _configure_mcp_tools_interactive(config: dict):
                 labels.append(tool_name)
 
         # Determine which tools are currently enabled
-        pre_selected: Set[int] = set()
+        pre_selected: set[int] = set()
         tool_names = [t[0] for t in tools]
         for i, tool_name in enumerate(tool_names):
             if include_list:
@@ -1575,7 +1584,7 @@ def _configure_mcp_tools_interactive(config: dict):
 # ─── Non-interactive disable/enable ──────────────────────────────────────────
 
 
-def _apply_toolset_change(config: dict, platform: str, toolset_names: List[str], action: str):
+def _apply_toolset_change(config: dict, platform: str, toolset_names: list[str], action: str):
     """Add or remove built-in toolsets for a platform."""
     enabled = _get_platform_tools(config, platform, include_default_mcp_servers=False)
     if action == "disable":
@@ -1585,12 +1594,12 @@ def _apply_toolset_change(config: dict, platform: str, toolset_names: List[str],
     _save_platform_tools(config, platform, updated)
 
 
-def _apply_mcp_change(config: dict, targets: List[str], action: str) -> Set[str]:
+def _apply_mcp_change(config: dict, targets: list[str], action: str) -> set[str]:
     """Add or remove specific MCP tools from a server's exclude list.
 
     Returns the set of server names that were not found in config.
     """
-    failed_servers: Set[str] = set()
+    failed_servers: set[str] = set()
     mcp_servers = config.get("mcp_servers") or {}
 
     for target in targets:
@@ -1624,7 +1633,7 @@ def _print_tools_list(enabled_toolsets: set, mcp_servers: dict, platform: str = 
         print(f"  {status}  {ts_key}  {color(label, Colors.DIM)}")
 
     # Plugin toolsets
-    plugin_entries = [(k, l) for k, l, _ in effective if k not in builtin_keys]
+    plugin_entries = [(k, lbl) for k, lbl, _ in effective if k not in builtin_keys]
     if plugin_entries:
         print()
         print(f"Plugin toolsets ({platform}):")
@@ -1667,7 +1676,7 @@ def tools_disable_enable_command(args):
                           config.get("mcp_servers") or {}, platform)
         return
 
-    targets: List[str] = args.names
+    targets: list[str] = args.names
     toolset_targets = [t for t in targets if ":" not in t]
     mcp_targets = [t for t in targets if ":" in t]
 
@@ -1681,7 +1690,7 @@ def tools_disable_enable_command(args):
     if toolset_targets:
         _apply_toolset_change(config, platform, toolset_targets, action)
 
-    failed_servers: Set[str] = set()
+    failed_servers: set[str] = set()
     if mcp_targets:
         failed_servers = _apply_mcp_change(config, mcp_targets, action)
         for srv in failed_servers:

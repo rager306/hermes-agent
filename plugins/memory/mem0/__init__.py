@@ -260,7 +260,7 @@ class Mem0MemoryProvider(MemoryProvider):
                 if results:
                     lines = [r.get("memory", "") for r in results if r.get("memory")]
                     with self._prefetch_lock:
-                        self._prefetch_result = "\n".join(f"- {l}" for l in lines)
+                        self._prefetch_result = "\n".join(f"- {ln}" for ln in lines)
                 self._record_success()
             except Exception as e:
                 self._record_failure()

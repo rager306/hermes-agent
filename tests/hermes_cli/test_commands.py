@@ -4,16 +4,16 @@ from prompt_toolkit.completion import CompleteEvent
 from prompt_toolkit.document import Document
 
 from hermes_cli.commands import (
+    _CMD_NAME_LIMIT,
+    _TG_NAME_LIMIT,
     COMMAND_REGISTRY,
     COMMANDS,
     COMMANDS_BY_CATEGORY,
-    CommandDef,
     GATEWAY_KNOWN_COMMANDS,
     SUBCOMMANDS,
+    CommandDef,
     SlashCommandAutoSuggest,
     SlashCommandCompleter,
-    _CMD_NAME_LIMIT,
-    _TG_NAME_LIMIT,
     _clamp_command_names,
     _clamp_telegram_names,
     _sanitize_telegram_name,
@@ -195,7 +195,7 @@ class TestGatewayHelpLines:
 
     def test_includes_alias_note_for_bg(self):
         lines = gateway_help_lines()
-        bg_line = [l for l in lines if "/background" in l]
+        bg_line = [ln for ln in lines if "/background" in ln]
         assert len(bg_line) == 1
         assert "/bg" in bg_line[0]
 
@@ -687,7 +687,7 @@ class TestTelegramMenuCommands:
 
     def test_excludes_telegram_disabled_skills(self, tmp_path, monkeypatch):
         """Skills disabled for telegram should not appear in the menu."""
-        from unittest.mock import patch, MagicMock
+        from unittest.mock import patch
 
         # Set up a config with a telegram-specific disabled list
         config_file = tmp_path / "config.yaml"
@@ -720,7 +720,7 @@ class TestTelegramMenuCommands:
             patch("tools.skills_tool.SKILLS_DIR", tmp_path / "skills"),
         ):
             (tmp_path / "skills").mkdir(exist_ok=True)
-            menu, hidden = telegram_menu_commands(max_commands=100)
+            menu, _hidden = telegram_menu_commands(max_commands=100)
 
         menu_names = {n for n, _ in menu}
         assert "my_enabled_skill" in menu_names
@@ -728,8 +728,8 @@ class TestTelegramMenuCommands:
 
     def test_special_chars_in_skill_names_sanitized(self, tmp_path, monkeypatch):
         """Skills with +, /, or other special chars produce valid Telegram names."""
-        from unittest.mock import patch
         import re
+        from unittest.mock import patch
 
         monkeypatch.setenv("HERMES_HOME", str(tmp_path))
 

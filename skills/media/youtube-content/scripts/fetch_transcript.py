@@ -47,7 +47,7 @@ def format_timestamp(seconds: float) -> str:
     return f"{m}:{s:02d}"
 
 
-def fetch_transcript(video_id: str, languages: list = None):
+def fetch_transcript(video_id: str, languages: list | None = None):
     """Fetch transcript segments from YouTube.
 
     Returns a list of dicts with 'text', 'start', and 'duration' keys.
@@ -85,7 +85,7 @@ def main():
     args = parser.parse_args()
 
     video_id = extract_video_id(args.url)
-    languages = [l.strip() for l in args.language.split(",")] if args.language else None
+    languages = [lang.strip() for lang in args.language.split(",")] if args.language else None
 
     try:
         segments = fetch_transcript(video_id, languages)
@@ -94,7 +94,7 @@ def main():
         if "disabled" in error_msg.lower():
             print(json.dumps({"error": "Transcripts are disabled for this video."}))
         elif "no transcript" in error_msg.lower():
-            print(json.dumps({"error": f"No transcript found. Try specifying a language with --language."}))
+            print(json.dumps({"error": "No transcript found. Try specifying a language with --language."}))
         else:
             print(json.dumps({"error": error_msg}))
         sys.exit(1)

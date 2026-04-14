@@ -7,9 +7,9 @@ Verifies worktree creation, cleanup, .worktreeinclude handling,
 import os
 import shutil
 import subprocess
-import pytest
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+
+import pytest
 
 
 @pytest.fixture
@@ -304,7 +304,6 @@ class TestWorktreeInclude:
         assert info is not None
 
         # Manually copy .worktreeinclude entries (mirrors cli.py logic)
-        import shutil
         include_file = git_repo / ".worktreeinclude"
         wt_path = Path(info["path"])
         for line in include_file.read_text().splitlines():
@@ -400,7 +399,7 @@ class TestMultipleWorktrees:
             capture_output=True, text=True, cwd=str(git_repo),
         )
         # Should have 11 entries: main + 10 worktrees
-        lines = [l for l in result.stdout.strip().splitlines() if l.strip()]
+        lines = [ln for ln in result.stdout.strip().splitlines() if ln.strip()]
         assert len(lines) == 11
 
         # Cleanup all (git_repo fixture has a fake remote ref so cleanup works)
@@ -735,7 +734,7 @@ class TestOrphanedBranchPruning:
         # Delete them
         if orphaned:
             subprocess.run(
-                ["git", "branch", "-D"] + orphaned,
+                ["git", "branch", "-D", *orphaned],
                 capture_output=True, text=True, cwd=str(git_repo),
             )
 
@@ -772,7 +771,7 @@ class TestOrphanedBranchPruning:
         assert "pr-5678" in orphaned
 
         subprocess.run(
-            ["git", "branch", "-D"] + orphaned,
+            ["git", "branch", "-D", *orphaned],
             capture_output=True, text=True, cwd=str(git_repo),
         )
 

@@ -44,7 +44,7 @@ import random
 import re
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 from urllib.parse import urlparse
 
 from pydantic import Field
@@ -214,7 +214,7 @@ class WebResearchEnv(HermesAgentBaseEnv):
     env_config_cls = WebResearchEnvConfig
 
     # Default toolsets for this environment — web + file for saving notes
-    default_toolsets = ["web", "file"]
+    default_toolsets: ClassVar[list[str]] = ["web", "file"]
 
     @classmethod
     def config_init(cls) -> tuple[WebResearchEnvConfig, list[APIServerConfig]]:

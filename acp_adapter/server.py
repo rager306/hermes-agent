@@ -6,7 +6,7 @@ import asyncio
 import logging
 from collections import defaultdict, deque
 from concurrent.futures import ThreadPoolExecutor
-from typing import Any
+from typing import Any, ClassVar
 
 import acp
 from acp.schema import (
@@ -93,7 +93,7 @@ def _extract_text(
 class HermesACPAgent(acp.Agent):
     """ACP Agent implementation wrapping Hermes AIAgent."""
 
-    _SLASH_COMMANDS = {
+    _SLASH_COMMANDS: ClassVar[dict[str, str]] = {
         "help": "Show available commands",
         "model": "Show or change current model",
         "tools": "List available tools",
@@ -103,7 +103,7 @@ class HermesACPAgent(acp.Agent):
         "version": "Show Hermes version",
     }
 
-    _ADVERTISED_COMMANDS = (
+    _ADVERTISED_COMMANDS: ClassVar[tuple[dict[str, str], ...]] = (
         {
             "name": "help",
             "description": "List available commands",

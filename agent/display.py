@@ -12,6 +12,7 @@ import time
 from dataclasses import dataclass, field
 from difflib import unified_diff
 from pathlib import Path
+from typing import ClassVar
 
 from utils import safe_json_loads
 
@@ -577,7 +578,7 @@ def render_edit_diff_with_delta(
 class KawaiiSpinner:
     """Animated spinner with kawaii faces for CLI feedback during tool execution."""
 
-    SPINNERS = {
+    SPINNERS: ClassVar[dict[str, list[str]]] = {
         'dots': ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'],
         'bounce': ['⠁', '⠂', '⠄', '⡀', '⢀', '⠠', '⠐', '⠈'],
         'grow': ['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█', '▇', '▆', '▅', '▄', '▃', '▂'],
@@ -589,18 +590,18 @@ class KawaiiSpinner:
         'sparkle': ['⁺', '˚', '*', '✧', '✦', '✧', '*', '˚'],
     }
 
-    KAWAII_WAITING = [
+    KAWAII_WAITING: ClassVar[list[str]] = [
         "(｡◕‿◕｡)", "(◕‿◕✿)", "٩(◕‿◕｡)۶", "(✿◠‿◠)", "( ˘▽˘)っ",
         "♪(´ε` )", "(◕ᴗ◕✿)", "ヾ(＾∇＾)", "(≧◡≦)", "(★ω★)",
     ]
 
-    KAWAII_THINKING = [
+    KAWAII_THINKING: ClassVar[list[str]] = [
         "(｡•́︿•̀｡)", "(◔_◔)", "(¬‿¬)", "( •_•)>⌐■-■", "(⌐■_■)",
         "(´･_･`)", "◉_◉", "(°ロ°)", "( ˘⌣˘)♡", "ヽ(>∀<☆)☆",
         "٩(๑❛ᴗ❛๑)۶", "(⊙_⊙)", "(¬_¬)", "( ͡° ͜ʖ ͡°)", "ಠ_ಠ",
     ]
 
-    THINKING_VERBS = [
+    THINKING_VERBS: ClassVar[list[str]] = [
         "pondering", "contemplating", "musing", "cogitating", "ruminating",
         "deliberating", "mulling", "reflecting", "processing", "reasoning",
         "analyzing", "computing", "synthesizing", "formulating", "brainstorming",

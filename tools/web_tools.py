@@ -56,7 +56,6 @@ from agent.auxiliary_client import (
     get_async_text_auxiliary_client,
 )
 from tools.debug_helpers import DebugSession
-from tools.web_tools_cache import cache_tool_result
 from tools.managed_tool_gateway import (
     build_vendor_gateway_url,
     resolve_managed_tool_gateway,
@@ -66,6 +65,7 @@ from tools.managed_tool_gateway import (
 )
 from tools.tool_backend_helpers import managed_nous_tools_enabled
 from tools.url_safety import is_safe_url
+from tools.web_tools_cache import cache_tool_result
 from tools.website_policy import check_website_access
 
 logger = logging.getLogger(__name__)

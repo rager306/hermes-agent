@@ -25,7 +25,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path, PurePosixPath
-from typing import Any
+from typing import Any, ClassVar
 from urllib.parse import urlparse, urlunparse
 
 import httpx
@@ -286,7 +286,7 @@ class SkillSource(ABC):
 class GitHubSource(SkillSource):
     """Fetch skills from GitHub repos via the Contents API."""
 
-    DEFAULT_TAPS = [
+    DEFAULT_TAPS: ClassVar[list[dict[str, str]]] = [
         {"repo": "openai/skills", "path": "skills/"},
         {"repo": "anthropics/skills", "path": "skills/"},
         {"repo": "VoltAgent/awesome-agent-skills", "path": "skills/"},
@@ -1901,7 +1901,7 @@ class ClaudeMarketplaceSource(SkillSource):
     Marketplace repos contain .claude-plugin/marketplace.json with plugin listings.
     """
 
-    KNOWN_MARKETPLACES = [
+    KNOWN_MARKETPLACES: ClassVar[list[str]] = [
         "anthropics/skills",
         "aiskillstore/marketplace",
     ]

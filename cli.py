@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
+
 """
 Hermes Agent CLI - Interactive Terminal Interface
 
@@ -1171,7 +1172,7 @@ def _resolve_attachment_path(raw_path: str) -> Path | None:
     return resolved
 
 
-def _format_process_notification(evt: dict) -> "str | None":
+def _format_process_notification(evt: dict) -> str | None:
     """Format a process notification event into a [SYSTEM: ...] message.
 
     Handles both completion events (notify_on_complete) and watch pattern
@@ -1210,7 +1211,7 @@ def _format_process_notification(evt: dict) -> "str | None":
     )
 
 
-def _detect_file_drop(user_input: str) -> "dict | None":
+def _detect_file_drop(user_input: str) -> dict | None:
     """Detect if *user_input* starts with a real local file path.
 
     This catches dragged/pasted paths before they are mistaken for slash

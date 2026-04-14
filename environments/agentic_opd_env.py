@@ -69,7 +69,7 @@ import sys
 import time
 import uuid
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 from pydantic import Field
 
@@ -390,7 +390,7 @@ class AgenticOPDEnv(HermesAgentBaseEnv):
     env_config_cls = AgenticOPDConfig
 
     # Default toolsets: terminal for running code, file for writing it
-    default_toolsets = ["terminal", "file"]
+    default_toolsets: ClassVar[list[str]] = ["terminal", "file"]
 
     @classmethod
     def config_init(cls) -> tuple[AgenticOPDConfig, list[APIServerConfig]]:

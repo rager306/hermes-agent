@@ -1,6 +1,7 @@
 """Tests for asyncio.TaskGroup patterns (Python 3.13+)."""
-import pytest
 import asyncio
+
+import pytest
 
 
 class TestTaskGroupMigration:
@@ -30,6 +31,7 @@ class TestTaskGroupMigration:
         # This test documents that gateway/platforms/base.py:1878 uses
         # asyncio.gather for cancel_background_tasks - potential migration target
         import inspect
+
         from gateway.platforms.base import MessagingPlatform
 
         source = inspect.getsource(MessagingPlatform.cancel_background_tasks)

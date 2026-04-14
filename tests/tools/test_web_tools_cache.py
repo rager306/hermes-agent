@@ -1,7 +1,5 @@
 """Tests for tool result caching with property-based testing."""
 import time
-import pytest
-from adaptix import loader
 
 from tools.web_tools_cache import cache_tool_result, clear_tool_cache
 
@@ -73,12 +71,12 @@ class TestCacheToolResultBasics:
             call_count += 1
             return x * 2
 
-        result1 = expensive_operation(5)
+        expensive_operation(5)
         assert call_count == 1
 
         clear_tool_cache(expensive_operation)
 
-        result2 = expensive_operation(5)
+        expensive_operation(5)
         assert call_count == 2  # Called again after cache clear
 
 
@@ -183,9 +181,8 @@ class TestCacheWithHypothesis:
 
     def test_cache_idempotent(self):
         """Cache should return same result for same input across many calls."""
-        import hypothesis
-        from hypothesis import given, settings
         import hypothesis.strategies as st
+        from hypothesis import given, settings
 
         @cache_tool_result(ttl_seconds=60)
         def double(x):

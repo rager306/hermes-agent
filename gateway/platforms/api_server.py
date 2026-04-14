@@ -30,7 +30,7 @@ import socket as _socket
 import sqlite3
 import time
 import uuid
-from typing import Any, Optional
+from typing import Any, ClassVar, Optional
 
 try:
     from aiohttp import web
@@ -1200,9 +1200,9 @@ class APIServerAdapter(BasePlatformAdapter):
     except ImportError:
         pass
 
-    _JOB_ID_RE = __import__("re").compile(r"[a-f0-9]{12}")
+    _JOB_ID_RE: ClassVar = __import__("re").compile(r"[a-f0-9]{12}")
     # Allowed fields for update — prevents clients injecting arbitrary keys
-    _UPDATE_ALLOWED_FIELDS = {"name", "schedule", "prompt", "deliver", "skills", "skill", "repeat", "enabled"}
+    _UPDATE_ALLOWED_FIELDS: ClassVar[set[str]] = {"name", "schedule", "prompt", "deliver", "skills", "skill", "repeat", "enabled"}
     _MAX_NAME_LENGTH = 200
     _MAX_PROMPT_LENGTH = 5000
 

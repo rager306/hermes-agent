@@ -12,6 +12,7 @@ Based on VLLM's KimiK2ToolParser.extract_tool_calls()
 """
 
 import re
+from typing import ClassVar
 
 from openai.types.chat.chat_completion_message_tool_call import (
     ChatCompletionMessageToolCall,
@@ -31,7 +32,7 @@ class KimiK2ToolCallParser(ToolCallParser):
     """
 
     # Support both singular and plural variants
-    START_TOKENS = [
+    START_TOKENS: ClassVar[list[str]] = [
         "<|tool_calls_section_begin|>",
         "<|tool_call_section_begin|>",
     ]

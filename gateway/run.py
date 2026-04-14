@@ -26,7 +26,7 @@ import threading
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 
 # ---------------------------------------------------------------------------
@@ -523,17 +523,17 @@ class GatewayRunner:
 
     # Class-level defaults so partial construction in tests doesn't
     # blow up on attribute access.
-    _running_agents_ts: dict[str, float] = {}
-    _busy_input_mode: str = "interrupt"
-    _restart_drain_timeout: float = DEFAULT_GATEWAY_RESTART_DRAIN_TIMEOUT
-    _exit_code: int | None = None
-    _draining: bool = False
-    _restart_requested: bool = False
-    _restart_task_started: bool = False
-    _restart_detached: bool = False
-    _restart_via_service: bool = False
-    _stop_task: asyncio.Task | None = None
-    _session_model_overrides: dict[str, dict[str, str]] = {}
+    _running_agents_ts: ClassVar[dict[str, float]] = {}
+    _busy_input_mode: ClassVar[str] = "interrupt"
+    _restart_drain_timeout: ClassVar[float] = DEFAULT_GATEWAY_RESTART_DRAIN_TIMEOUT
+    _exit_code: ClassVar[int | None] = None
+    _draining: ClassVar[bool] = False
+    _restart_requested: ClassVar[bool] = False
+    _restart_task_started: ClassVar[bool] = False
+    _restart_detached: ClassVar[bool] = False
+    _restart_via_service: ClassVar[bool] = False
+    _stop_task: ClassVar[asyncio.Task | None] = None
+    _session_model_overrides: ClassVar[dict[str, dict[str, str]]] = {}
 
     def __init__(self, config: GatewayConfig | None = None):
         self.config = config or load_gateway_config()
@@ -1729,13 +1729,13 @@ class GatewayRunner:
             from tools.process_registry import process_registry
             while process_registry.pending_watchers:
                 watcher = process_registry.pending_watchers.pop(0)
-                asyncio.create_task(self._run_process_watcher(watcher))
+                asyncio.create_task(self._run_process_watcher(watcher))  # noqa: RUF006
                 logger.info("Resumed watcher for recovered process %s", watcher.get("session_id"))
         except Exception as e:
             logger.error("Recovered watcher setup error: %s", e)
 
         # Start background session expiry watcher for proactive memory flushing
-        asyncio.create_task(self._session_expiry_watcher())
+        asyncio.create_task(self._session_expiry_watcher())  # noqa: RUF006
 
         # Start background reconnection watcher for platforms that failed at startup
         if self._failed_platforms:
@@ -1744,7 +1744,7 @@ class GatewayRunner:
                 len(self._failed_platforms),
                 ", ".join(p.value for p in self._failed_platforms),
             )
-        asyncio.create_task(self._platform_reconnect_watcher())
+        asyncio.create_task(self._platform_reconnect_watcher())  # noqa: RUF006
 
         logger.info("Press Ctrl+C to stop")
 
@@ -3658,7 +3658,7 @@ class GatewayRunner:
                 from tools.process_registry import process_registry
                 while process_registry.pending_watchers:
                     watcher = process_registry.pending_watchers.pop(0)
-                    asyncio.create_task(self._run_process_watcher(watcher))
+                    asyncio.create_task(self._run_process_watcher(watcher))  # noqa: RUF006
             except Exception as e:
                 logger.error("Process watcher setup error: %s", e)
 
@@ -8929,7 +8929,7 @@ async def start_gateway(config: GatewayConfig | None = None, replace: bool = Fal
 
     # Set up signal handlers
     def shutdown_signal_handler():
-        asyncio.create_task(runner.stop())
+        asyncio.create_task(runner.stop())  # noqa: RUF006
 
     def restart_signal_handler():
         runner.request_restart(detached=False, via_service=True)

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
+
 """
 AI Agent Runner with Tool Calling
 
@@ -41,7 +42,7 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Any
+from typing import Any, ClassVar
 
 import fire
 from openai import OpenAI
@@ -568,8 +569,8 @@ class AIAgent:
     # The gateway creates a new AIAgent per message, so instance-level flags
     # reset every time.  This dict tracks {session_id: (warn_level, timestamp)}
     # to suppress duplicate warnings within a cooldown window.
-    _context_pressure_last_warned: dict = {}
-    _CONTEXT_PRESSURE_COOLDOWN = 300  # seconds between re-warning same session
+    _context_pressure_last_warned: ClassVar[dict] = {}
+    _CONTEXT_PRESSURE_COOLDOWN: ClassVar[int] = 300  # seconds between re-warning same session
 
     @property
     def base_url(self) -> str:
@@ -630,7 +631,7 @@ class AIAgent:
         skip_memory: bool = False,
         session_db=None,
         parent_session_id: str | None = None,
-        iteration_budget: "IterationBudget" = None,
+        iteration_budget: IterationBudget = None,
         fallback_model: dict[str, Any] | None = None,
         credential_pool=None,
         checkpoints_enabled: bool = False,

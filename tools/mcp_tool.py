@@ -79,7 +79,7 @@ import re
 import shutil
 import threading
 import time
-from typing import Any
+from typing import Any, ClassVar
 
 logger = logging.getLogger(__name__)
 
@@ -359,7 +359,7 @@ class SamplingHandler:
     it doesn't block the event loop.
     """
 
-    _STOP_REASON_MAP = {"stop": "endTurn", "length": "maxTokens", "tool_calls": "toolUse"}
+    _STOP_REASON_MAP: ClassVar[dict[str, str]] = {"stop": "endTurn", "length": "maxTokens", "tool_calls": "toolUse"}
 
     def __init__(self, server_name: str, config: dict):
         self.server_name = server_name

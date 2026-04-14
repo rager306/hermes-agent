@@ -421,7 +421,7 @@ async def _spawn_training_run(run_state: RunState, config_path: Path):
         logger.info("[%s] Training run started successfully!", run_id)
 
         # Start background monitoring
-        asyncio.create_task(_monitor_training_run(run_state))
+        asyncio.create_task(_monitor_training_run(run_state))  # noqa: RUF006
 
     except Exception as e:
         run_state.status = "failed"
@@ -794,7 +794,7 @@ async def rl_start_training() -> str:
     _active_runs[run_id] = run_state
 
     # Start training in background
-    asyncio.create_task(_spawn_training_run(run_state, config_path))
+    asyncio.create_task(_spawn_training_run(run_state, config_path))  # noqa: RUF006
 
     return json.dumps({
         "run_id": run_id,

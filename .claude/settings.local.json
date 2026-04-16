@@ -1,0 +1,37 @@
+{
+  "env": {
+    "EXA_API_KEY": "set in ~/.bashrc"
+  },
+  "permissions": {
+    "allow": [
+      "mcp__plugin_serena_serena__activate_project",
+      "mcp__plugin_serena_serena__find_symbol",
+      "mcp__jina__search_web",
+      "mcp__jina__search_jina_blog",
+      "mcp__jina__search_ssrn",
+      "mcp__jina__read_url",
+      "mcp__jina__parallel_search_web",
+      "mcp__jina__search_arxiv",
+      "mcp__jina__search_bibtex",
+      "mcp__Ref__ref_search_documentation",
+      "mcp__plugin_serena_serena__get_current_config",
+      "mcp__MiniMax__web_search",
+      "mcp__plugin_serena_serena__get_symbols_overview",
+      "mcp__plugin_serena_serena__read_file",
+      "mcp__plugin_serena_serena__search_for_pattern",
+      "mcp__plugin_serena_serena__replace_content",
+      "mcp__plugin_serena_serena__execute_shell_command",
+      "mcp__plugin_serena_serena__insert_after_symbol",
+      "mcp__plugin_serena_serena__create_text_file",
+      "mcp__plugin_serena_serena__find_referencing_symbols",
+      "mcp__plugin_claude-mem_mcp-search__smart_outline",
+      "mcp__plugin_claude-mem_mcp-search__smart_unfold",
+      "Skill(update-config)",
+      "mcp__plugin_gitnexus_gitnexus__list_repos",
+      "mcp__plugin_gitnexus_gitnexus__query",
+      "mcp__plugin_gitnexus_gitnexus__context",
+      "Bash(mkdir -p .claude)",
+      "Bash(cat)"
+    ]
+  }
+}
